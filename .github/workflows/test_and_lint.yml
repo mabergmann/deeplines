@@ -1,20 +1,31 @@
-name: Test and lint
+name: CI
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
-    build:
+  build:
+    runs-on: ubuntu-latest
 
-        runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-        steps:
-            - uses: actions/checkout@v3
-              - name: Set up Python 3.x
-                uses: actions/setup-python@v4
-                with:
-                    python-version: '3.8'
-                    architecture: 'x64'
-              - name: lint
-                run: flake8 .
-              - name: Test
-                run: python -m unittest discover tests
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run flake8
+      run: |
+        flake8
+
+    - name: Run pytest
+      run: |
+        pytest tests/unit
