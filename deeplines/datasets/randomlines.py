@@ -14,6 +14,9 @@ class RandomLines(Dataset):
         self.min_lines = min_lines
         self.max_lines = max_lines
 
+    def __len__(self):
+        return 500
+
     def __getitem__(self, idx):
         img = np.zeros((self.image_size[0], self.image_size[1], 3))
 

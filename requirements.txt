@@ -1,6 +1,7 @@
 flake8
 numpy
 opencv-python
-pytest
 pre-commit
+pytest
+pytorch-lightning
 torch
