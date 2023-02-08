@@ -1,7 +1,8 @@
-import random
-
 import numpy as np
 from torch.utils.data import Dataset
+import random
+
+from ..line import Line
 
 
 class RandomLines(Dataset):
@@ -18,6 +19,10 @@ class RandomLines(Dataset):
         lines = []
 
         for i in range(n_lines):
-            lines.append(None)
+            cx = random.randint(0, self.image_size[1])
+            cy = random.randint(0, self.image_size[0])
+            angle = random.random() * 2 * np.pi
+            a_line = Line(cx=cx, cy=cy, angle=angle)
+            lines.append(a_line)
 
         return img, lines

@@ -2,6 +2,7 @@ import pytest
 from torch.utils.data import Dataset
 
 from deeplines.datasets.randomlines import RandomLines
+from deeplines.line import Line
 
 
 @pytest.fixture
@@ -21,3 +22,9 @@ def test_image_size(dataset):
 def test_correct_number_of_lines(dataset):
     img, gt = dataset[0]
     assert 1 <= len(gt) <= 5
+
+
+def test_gt_is_list_of_lines(dataset):
+    img, gt = dataset[0]
+    for line in gt:
+        assert isinstance(line, Line)
