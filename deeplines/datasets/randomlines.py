@@ -1,8 +1,11 @@
+import math
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 import random
 
 from ..line import Line
+from ..utils import draw_line
 
 
 class RandomLines(Dataset):
@@ -22,7 +25,23 @@ class RandomLines(Dataset):
             cx = random.randint(0, self.image_size[1])
             cy = random.randint(0, self.image_size[0])
             angle = random.random() * 2 * np.pi
-            a_line = Line(cx=cx, cy=cy, angle=angle)
+            max_length = self.maximum_length(cx, cy, angle)
+            length = random.random() * max_length
+            a_line = Line(cx=cx, cy=cy, angle=angle, length=length)
             lines.append(a_line)
 
-        return img, lines
+            img = draw_line(img, a_line, (255, 255, 255), 3)
+
+        img_th = torch.from_numpy(np.transpose(img, (2, 0, 1)))
+
+        return img_th, lines
+
+    def maximum_length(self, cx, cy, angle):
+        w, h = self.image_size
+
+        # Calculate line length in both x and y directions
+        x_length = min(cx, w - cx) / math.cos(angle)
+        y_length = min(cy, h - cy) / math.sin(angle)
+
+        # Return the minimum of the two lengths
+        return min(x_length, y_length)
