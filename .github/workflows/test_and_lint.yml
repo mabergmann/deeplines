@@ -1,0 +1,20 @@
+name: Test and lint
+
+on: [push]
+
+jobs:
+    build:
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v3
+              - name: Set up Python 3.x
+                uses: actions/setup-python@v4
+                with:
+                    python-version: '3.8'
+                    architecture: 'x64'
+              - name: lint
+                run: flake8 .
+              - name: Test
+                run: python -m unittest discover tests
