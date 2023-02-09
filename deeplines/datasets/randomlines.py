@@ -35,7 +35,7 @@ class RandomLines(Dataset):
 
             img = draw_line(img, a_line, (255, 255, 255), 3)
 
-        img_th = torch.from_numpy(np.transpose(img, (2, 0, 1)))
+        img_th = torch.from_numpy(np.transpose(img, (2, 0, 1))).float()
 
         return img_th, lines
 
@@ -48,3 +48,15 @@ class RandomLines(Dataset):
 
         # Return the minimum of the two lengths
         return min(x_length, y_length)
+
+    def collate_fn(self, batch):
+        images = []
+        lines = []
+
+        for img, line in batch:
+            images.append(img.unsqueeze(0))
+            lines.append(line)
+
+        images = torch.cat(images, dim=-1)
+
+        return images, lines

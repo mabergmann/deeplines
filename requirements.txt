@@ -1,7 +1,10 @@
 flake8
+lightning[extra]
 numpy
 opencv-python
 pre-commit
 pytest
 pytorch-lightning
+scipy
 torch
+torchvision

@@ -7,11 +7,12 @@ class DeepLineLoss(nn.Module):
         super().__init__()
         self.image_size = image_size
         self.n_columns = n_columns
-        self.mse = torch.nn.MSELoss()
+        self.mse = torch.nn.MSELoss(reduction='mean')
 
     def forward(self, pred, gt):
         objectness = self.get_objectness_from_gt(gt)
-        return self.mse(pred, objectness)
+        objectness = objectness.to(pred.device)
+        return self.mse(pred, objectness.unsqueeze(2))
 
     def get_objectness_from_gt(self, gt):
 
@@ -20,5 +21,7 @@ class DeepLineLoss(nn.Module):
         for i in range(len(gt)):
             for j in range(len(gt[i])):
                 x = gt[i][j].cx * self.n_columns // self.image_size[1]
+                if x == self.n_columns:
+                    x = self.n_columns - 1
                 objectness[i, x] = 1
         return objectness

@@ -1,4 +1,5 @@
 import pytest
+import torch
 
 from deeplines.loss import DeepLineLoss
 from deeplines.line import Line
@@ -18,3 +19,16 @@ def test_get_objectness(loss):
             assert objectness[0, i] == 1
         else:
             assert objectness[0, i] == 0
+
+def test_one_line_correct(loss):
+    gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
+    pred = torch.zeros((1, 9))
+    pred[0, 1] = 1
+    l = loss(pred, gt)
+    assert l == 0
+
+def test_one_line_correct(loss):
+    gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
+    pred = torch.zeros((1, 9))
+    l = loss(pred, gt)
+    assert l == pytest.approx(1/9)
