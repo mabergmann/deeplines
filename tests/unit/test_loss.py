@@ -20,15 +20,17 @@ def test_get_objectness(loss):
         else:
             assert objectness[0, i] == 0
 
+
 def test_one_line_correct(loss):
     gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
     pred = torch.zeros((1, 9, 1))
     pred[0, 1, 0] = 1
-    l = loss(pred, gt)
-    assert l == 0
+    result = loss(pred, gt)
+    assert result == 0
+
 
 def test_one_line_incorrect(loss):
     gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
     pred = torch.zeros((1, 9, 1))
-    l = loss(pred, gt)
-    assert l == pytest.approx(1/9)
+    result = loss(pred, gt)
+    assert result == pytest.approx(1 / 9)

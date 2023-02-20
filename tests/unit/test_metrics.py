@@ -3,6 +3,7 @@ import pytest
 from deeplines.metrics import MetricAccumulator
 from deeplines.line import Line
 
+
 @pytest.fixture
 def metric_accumulator():
     return MetricAccumulator()

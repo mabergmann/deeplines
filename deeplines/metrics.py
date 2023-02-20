@@ -6,6 +6,7 @@ from . import utils
 
 class MetricAccumulator(object):
     correct_threshold = 800/9
+
     def __init__(self):
         self.tp = 0
         self.fp = 0
@@ -59,4 +60,3 @@ class MetricAccumulator(object):
         self.tp = 0
         self.fp = 0
         self.fn = 0
-
