@@ -45,6 +45,17 @@ def parse_args():
         type=int,
         help="Number of columns outputed by the model"
     )
+    parser.add_argument(
+        "--backbone",
+        type=str,
+        help="Backbone that should be used",
+        choices=["resnet50", "vgg16"]
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        help="Batch size"
+    )
     return parser.parse_args()
 
 
@@ -76,11 +87,7 @@ def main():
         num_workers=12
     )
 
-    engine = Engine(
-        image_size=(args.width, args.height),
-        n_columns=args.n_columns,
-        lr=args.lr
-    )
+    engine = Engine(args)
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         save_top_k=1,
@@ -100,7 +107,8 @@ def main():
         accelerator="gpu",
         devices=1,
         callbacks=[checkpoint_callback],
-        logger=logger
+        logger=logger,
+        accumulate_grad_batches=args.batch_size
     )
     trainer.fit(engine, train_loader, val_loader)
 

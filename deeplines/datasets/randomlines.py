@@ -52,7 +52,6 @@ class RandomLines(Dataset):
     def collate_fn(self, batch):
         images = []
         lines = []
-
         for img, line in batch:
             images.append(img.unsqueeze(0))
             lines.append(line)

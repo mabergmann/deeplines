@@ -9,13 +9,16 @@ entry_points:
             weight_decay: {type: float, default: 0.0}
             dataset: {type: str, default: random}
             n_columns: {type: str, default: 9}
+            backbone: {type: str, default: resnet50}
+            batch_size: {type: int, default: 1}
         command: "python train.py \
                       --lr {lr} \
                       --height {height} \
                       --width {width} \
                       --weight_decay {weight_decay} \
                       --dataset {dataset} \
-                      --n_columns {n_columns}"
+                      --n_columns {n_columns} \
+                      --backbone {backbone}"
     test:
         parameters:
             width: {type: int, default: 224}

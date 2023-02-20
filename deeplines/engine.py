@@ -8,13 +8,15 @@ from . import utils
 
 
 class Engine(pl.LightningModule):
-    def __init__(self, image_size, n_columns, lr=None):
+    def __init__(self, args):
         super().__init__()
-        self.model = DeepLines(n_columns)
-        self.loss = DeepLineLoss(image_size, n_columns)
-        self.image_size = image_size
-        self.n_columns = n_columns
-        self.lr = lr
+        self.image_size = (args.width, args.height)
+        self.n_columns = args.n_columns
+        self.args = args
+
+        self.model = DeepLines(self.n_columns, args.backbone)
+        self.loss = DeepLineLoss(self.image_size, self.n_columns)
+
         self.train_metric_accumulator = MetricAccumulator()
         self.val_metric_accumulator = MetricAccumulator()
         self.test_metric_accumulator = MetricAccumulator()
@@ -25,7 +27,7 @@ class Engine(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(
             self.model.parameters(),
-            lr=self.lr
+            lr=self.args.lr
         )
         return optimizer
 
@@ -33,13 +35,13 @@ class Engine(pl.LightningModule):
         x, y = train_batch
         pred = self.model(x)
         loss = self.loss(pred, y)
-        self.log('train_loss', loss)
         lines = utils.get_lines_from_output(
             pred,
             self.image_size[0],
             self.image_size[1]
         )
         self.train_metric_accumulator.update(lines, y)
+        self.log('train_loss', loss)
         return loss
 
     def on_train_epoch_end(self):
@@ -71,7 +73,11 @@ class Engine(pl.LightningModule):
         x, y = test_batch
         pred = self.model(x)
         loss = self.loss(pred, y)
-        lines = utils.get_lines_from_output(pred, 224, 224)
+        lines = utils.get_lines_from_output(
+            pred,
+            self.image_size[0],
+            self.image_size[1]
+        )
         self.test_metric_accumulator.update(lines, y)
         self.log('test_loss', loss)
         return loss

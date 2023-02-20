@@ -4,16 +4,29 @@ from torchvision import models
 
 
 class DeepLines(nn.Module):
-    def __init__(self, n_columns):
+    def __init__(self, n_columns, backbone):
         super().__init__()
 
         # init a pretrained resnet
-        backbone = models.resnet50(weights="DEFAULT")
-        num_filters = backbone.fc.in_features
-        layers = list(backbone.children())[:-1]
+        if backbone == "resnet50":
+            backbone = models.resnet50(weights="DEFAULT")
+            num_filters = backbone.fc.in_features
+            layers = list(backbone.children())[:-1]
+        elif backbone == "vgg16":
+            backbone = models.vgg16(weights="DEFAULT")
+            num_filters = 25088
+            layers = list(backbone.children())[:-1]
+        else:
+            raise NotImplementedError(f"Backbone {backbone} not implemented")
         self.feature_extractor = nn.Sequential(*layers)
 
-        self.classifier = nn.Linear(num_filters, n_columns)
+        self.classifier = nn.Sequential(
+            nn.Linear(num_filters, 4096),
+            nn.ReLU(inplace=True),
+            nn.Linear(4096, 4096),
+            nn.ReLU(inplace=True),
+            nn.Linear(4096, n_columns),
+        )
         self.n_columns = n_columns
 
     def forward(self, x):
