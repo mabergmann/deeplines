@@ -1,11 +1,10 @@
 import torch
 from torch import nn
-import torch.nn.functional as F
 from torchvision import models
 
 
 class DeepLines(nn.Module):
-    def __init__(self, input_image_size, n_columns):
+    def __init__(self, n_columns):
         super().__init__()
 
         # init a pretrained resnet
@@ -25,5 +24,3 @@ class DeepLines(nn.Module):
         x = torch.sigmoid(x)
 
         return x
-
-# Fui dormir com a loss em .162
