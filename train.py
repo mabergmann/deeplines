@@ -1,9 +1,9 @@
 import pytorch_lightning as pl
+from pytorch_lightning.loggers import MLFlowLogger
 from torch.utils.data import DataLoader
 
 from deeplines.datasets.randomlines import RandomLines
 from deeplines.engine import Engine
-from deeplines import utils
 
 pl.seed_everything(42, workers=True)
 
@@ -15,5 +15,20 @@ val_loader = DataLoader(val_dataset, batch_size=1, collate_fn=val_dataset.collat
 
 engine = Engine()
 
-trainer = pl.Trainer(accelerator="gpu", devices=1)
+checkpoint_callback = pl.callbacks.ModelCheckpoint(
+    save_top_k=1,
+    monitor="val_f1",
+    mode="max",
+)
+
+logger = MLFlowLogger(
+    experiment_name="deeplines"
+)
+
+trainer = pl.Trainer(
+    accelerator="gpu",
+    devices=1,
+    callbacks=[checkpoint_callback],
+    logger=logger
+)
 trainer.fit(engine, train_loader, val_loader)

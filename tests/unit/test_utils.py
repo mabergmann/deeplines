@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 from deeplines import utils
 from deeplines.line import Line
@@ -23,3 +24,14 @@ def test_line_distance():
     l2 = Line(cx=100, cy=100, angle=0, length=100)
 
     assert utils.get_distance_between_lines([l1], [l2])[0, 0] == 0
+
+
+def test_get_lines_from_output():
+    output = torch.zeros((1, 9, 1))
+    output[0, 4, 0] = 1
+
+    lines = utils.get_lines_from_output(output, 224, 224)
+
+    assert len(lines) == 1
+    assert len(lines[0]) == 1
+    assert lines[0][0].cx == 112

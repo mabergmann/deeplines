@@ -1,5 +1,6 @@
 flake8
 lightning[extra]
+mlflow
 numpy
 opencv-python
 pre-commit

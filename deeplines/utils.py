@@ -31,3 +31,19 @@ def get_distance_between_lines(lines1, lines2):
             distances[i, j] = euclidian_distance(l1, l2)
     return distances
 
+
+def get_lines_from_output(output, image_width, image_height, threshold=.5):
+    batch_lines = []
+    for img_output in output:
+        image_lines = []
+        for n, l in enumerate(img_output):
+            objectness = l[0]
+            if objectness >= threshold:
+                cx = n * image_width / len(img_output)
+                cx += image_width / (len(img_output) * 2)  # add it to the center
+                image_lines.append(
+                    Line(cx=cx, cy=image_height/2, length=10, angle=0)
+                )
+        batch_lines.append(image_lines)
+
+    return batch_lines
