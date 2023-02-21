@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from deeplines.line import Line
@@ -8,5 +9,26 @@ def line():
     return Line(cx=100, cy=100, angle=0, length=50)
 
 
+@pytest.fixture
+def line2():
+    return Line(cx=500, cy=590, angle=np.pi/2, length=200)
+
+
 def test_creation(line):
     assert isinstance(line, Line)
+
+
+def test_left(line):
+    assert line.left() == 75
+
+
+def test_right(line):
+    assert line.right() == 125
+
+
+def test_top(line2):
+    assert line2.top() == 490
+
+
+def test_bottom(line2):
+    assert line2.bottom() == 690

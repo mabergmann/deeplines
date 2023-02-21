@@ -67,7 +67,7 @@ def main():
     )
     test_results = trainer.test(
         engine, data,
-        ckpt_path="/home/matheus/Workspace/deeplines/mlruns/705148703057156592/1771c49392dc427bbd7de5be4c7e02fd/checkpoints/epoch=457-step=7328.ckpt"
+        ckpt_path="/home/matheus/Workspace/deeplines/mlruns/705148703057156592/70f0fc1337474a29bc21fc377e382618/checkpoints/epoch=70-step=1136.ckpt"
     )
 
     print(test_results)

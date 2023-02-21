@@ -33,4 +33,4 @@ def test_one_line_incorrect(loss):
     gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
     pred = torch.zeros((1, 9, 1))
     result = loss(pred, gt)
-    assert result == pytest.approx(1 / 9)
+    assert result == pytest.approx(100 / 9)

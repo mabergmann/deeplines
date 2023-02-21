@@ -25,7 +25,7 @@ class DeepLines(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
-            nn.Linear(4096, n_columns),
+            nn.Linear(4096, n_columns * 5),
         )
         self.n_columns = n_columns
 
@@ -34,6 +34,6 @@ class DeepLines(nn.Module):
         x = self.classifier(representations)
         x = x.reshape((x.shape[0], self.n_columns, -1))
 
-        x = torch.sigmoid(x)
+        x[:, :, 0] = torch.sigmoid(x[:, :, 0])
 
         return x

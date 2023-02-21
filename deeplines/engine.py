@@ -82,7 +82,7 @@ class Engine(pl.LightningModule):
         self.test_metric_accumulator.update(lines, y)
         self.log('test_loss', loss)
 
-        images = utils.draw_result(x, pred)
+        images = utils.draw_result(x, lines)
         for n, i in enumerate(images):
             cv2.imwrite(f"output/{batch_idx}_{n}.png", i)
 
