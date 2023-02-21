@@ -1,9 +1,8 @@
 import argparse
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import MLFlowLogger
-from torch.utils.data import DataLoader
 
-from deeplines.datasets.randomlines import RandomLines
+from deeplines.datamodel import RandomDataModel
 from deeplines.engine import Engine
 
 
@@ -34,6 +33,17 @@ def parse_args():
         type=int,
         help="Number of columns outputed by the model"
     )
+    parser.add_argument(
+        "--backbone",
+        type=str,
+        help="Backbone that should be used",
+        choices=["resnet50", "vgg16"]
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        help="Batch size"
+    )
     return parser.parse_args()
 
 
@@ -41,18 +51,7 @@ def main():
     args = parse_args()
     pl.seed_everything(42, workers=True)
 
-    test_dataset = RandomLines(
-        image_size=(args.width, args.height),
-        min_lines=1,
-        max_lines=5
-    )
-
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=1,
-        collate_fn=test_dataset.collate_fn,
-        num_workers=12
-    )
+    data = RandomDataModel(args.batch_size, args.width, args.height)
 
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
         save_top_k=1,
@@ -60,26 +59,17 @@ def main():
         mode="max",
     )
 
-    logger = MLFlowLogger(
-        experiment_name="deeplines"
-    )
-
-    engine = Engine(
-        n_columns=args.n_columns,
-        image_size=(args.width, args.height),
-    )
+    engine = Engine(args)
 
     trainer = pl.Trainer(
         accelerator="gpu",
         devices=1,
-        logger=logger,
-        callbacks=[checkpoint_callback]
     )
     test_results = trainer.test(
-        engine,
-        dataloaders=[test_loader],
-        ckpt_path="mlruns/277891689813798793/038648790b024e8380e27f496cc2b7c9/checkpoints/epoch=10-step=5500.ckpt"
+        engine, data,
+        ckpt_path="/home/matheus/Workspace/deeplines/mlruns/705148703057156592/1771c49392dc427bbd7de5be4c7e02fd/checkpoints/epoch=457-step=7328.ckpt"
     )
+
     print(test_results)
 
 

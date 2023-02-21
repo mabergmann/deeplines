@@ -41,9 +41,32 @@ def get_lines_from_output(output, image_width, image_height, threshold=.5):
             if objectness >= threshold:
                 cx = n * image_width / len(img_output)
                 cx += image_width / (len(img_output) * 2)  # add it to the center
-                image_lines.append(
-                    Line(cx=cx, cy=image_height/2, length=10, angle=0)
-                )
+                image_lines.append(Line(
+                    cx=cx,
+                    cy=image_height/2,
+                    length=10,
+                    angle=0,
+                    confidence=objectness
+                ))
         batch_lines.append(image_lines)
 
     return batch_lines
+
+
+def draw_result(batch_images, pred_batch):
+    output = []
+    for img, pred in zip(batch_images, pred_batch):
+        img_np = img.cpu().numpy().transpose((1, 2, 0)).copy()
+        img_np = cv2.resize(img_np, None, fx=5, fy=5)
+        for n in range(len(pred)):
+            x = int((n + 1) * img_np.shape[1] / len(pred))
+            h = img_np.shape[0]
+            img_np = cv2.line(img_np, (x, 0), (x, h), (0, 0, 255), 2)
+        for n, line in enumerate(pred):
+            conf = f"{float(line[0]):.2f}"
+            cx = img_np.shape[1] * n / len(pred)
+            img_np = cv2.putText(img_np, conf, (int(cx), 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))
+
+        output.append(img_np)
+
+    return output

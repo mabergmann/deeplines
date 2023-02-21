@@ -1,3 +1,4 @@
+import cv2
 import pytorch_lightning as pl
 import torch
 
@@ -80,6 +81,12 @@ class Engine(pl.LightningModule):
         )
         self.test_metric_accumulator.update(lines, y)
         self.log('test_loss', loss)
+
+        images = utils.draw_result(x, pred)
+        for n, i in enumerate(images):
+            cv2.imwrite(f"output/{batch_idx}_{n}.png", i)
+
+
         return loss
 
     def on_test_epoch_end(self):

@@ -2,9 +2,8 @@ import argparse
 
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import MLFlowLogger
-from torch.utils.data import DataLoader
 
-from deeplines.datasets.randomlines import RandomLines
+from deeplines.datamodel import RandomDataModel
 from deeplines.engine import Engine
 
 
@@ -63,29 +62,7 @@ def main():
     args = parse_args()
     pl.seed_everything(42, workers=True)
 
-    train_dataset = RandomLines(
-        image_size=(args.width, args.height),
-        min_lines=1,
-        max_lines=5
-    )
-    val_dataset = RandomLines(
-        image_size=(args.width, args.height),
-        min_lines=1,
-        max_lines=5
-    )
-
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=1,
-        collate_fn=train_dataset.collate_fn,
-        num_workers=12
-    )
-    val_loader = DataLoader(
-        val_dataset,
-        batch_size=1,
-        collate_fn=val_dataset.collate_fn,
-        num_workers=12
-    )
+    data = RandomDataModel(args.batch_size, args.width, args.height)
 
     engine = Engine(args)
 
@@ -108,9 +85,11 @@ def main():
         devices=1,
         callbacks=[checkpoint_callback],
         logger=logger,
-        accumulate_grad_batches=args.batch_size
+        num_sanity_val_steps=0,
+        max_epochs=500
     )
-    trainer.fit(engine, train_loader, val_loader)
+    trainer.tune(engine, datamodule=data)
+    trainer.fit(engine, datamodule=data)
 
 
 if __name__ == "__main__":

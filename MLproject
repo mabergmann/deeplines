@@ -3,16 +3,17 @@ name: My Project
 entry_points:
     train:
         parameters:
-            lr: {type: float, default: 0.001}
+            lr: {type: float, default: 0.0001}
             width: {type: int, default: 224}
             height: {type: int, default: 224}
             weight_decay: {type: float, default: 0.0}
             dataset: {type: str, default: random}
             n_columns: {type: str, default: 9}
             backbone: {type: str, default: resnet50}
-            batch_size: {type: int, default: 1}
+            batch_size: {type: int, default: 32}
         command: "python train.py \
                       --lr {lr} \
+                      --batch_size {batch_size} \
                       --height {height} \
                       --width {width} \
                       --weight_decay {weight_decay} \
@@ -25,8 +26,12 @@ entry_points:
             height: {type: int, default: 224}
             dataset: {type: str, default: random}
             n_columns: {type: str, default: 9}
+            backbone: {type: str, default: resnet50}
+            batch_size: {type: int, default: 32}
         command: "python test.py \
                       --height {height} \
                       --width {width} \
+                      --batch_size {batch_size} \
                       --dataset {dataset} \
-                      --n_columns {n_columns}"
+                      --n_columns {n_columns} \
+                      --backbone {backbone}"

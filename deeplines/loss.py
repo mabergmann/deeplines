@@ -7,7 +7,7 @@ class DeepLineLoss(nn.Module):
         super().__init__()
         self.image_size = image_size
         self.n_columns = n_columns
-        self.bce = torch.nn.MSELoss(reduction='mean')
+        self.bce = torch.nn.BCELoss(reduction='mean')
 
     def forward(self, pred, gt):
         objectness = self.get_objectness_from_gt(gt)

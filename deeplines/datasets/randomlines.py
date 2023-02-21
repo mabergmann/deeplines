@@ -52,10 +52,11 @@ class RandomLines(Dataset):
     def collate_fn(self, batch):
         images = []
         lines = []
+
         for img, line in batch:
             images.append(img.unsqueeze(0))
             lines.append(line)
 
-        images = torch.cat(images, dim=-1)
+        images = torch.cat(images, dim=0)
 
         return images, lines
