@@ -8,6 +8,7 @@ class DeepLines(nn.Module):
         super().__init__()
 
         # init a pretrained resnet
+        print(backbone)
         if backbone == "resnet50":
             backbone = models.resnet50(weights="DEFAULT")
             num_filters = backbone.fc.in_features
@@ -27,6 +28,8 @@ class DeepLines(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(4096, n_columns * 5),
         )
+
+        # self.classifier = nn.Linear(num_filters, n_columns * 5)
         self.n_columns = n_columns
 
     def forward(self, x):
@@ -34,6 +37,8 @@ class DeepLines(nn.Module):
         x = self.classifier(representations)
         x = x.reshape((x.shape[0], self.n_columns, -1))
 
-        x[:, :, 0] = torch.sigmoid(x[:, :, 0])
+        # x[:, :, 0] = torch.sigmoid(x[:, :, 0])
+        x[:, :, :3] = torch.sigmoid(x[:, :, 3])
+        # x = torch.sigmoid(x)
 
         return x

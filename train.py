@@ -86,7 +86,9 @@ def main():
         callbacks=[checkpoint_callback],
         logger=logger,
         num_sanity_val_steps=0,
-        max_epochs=500
+        max_epochs=500,
+        gradient_clip_val=0.5,
+        gradient_clip_algorithm="norm"
     )
     trainer.tune(engine, datamodule=data)
     trainer.fit(engine, datamodule=data)

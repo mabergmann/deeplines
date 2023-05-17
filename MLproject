@@ -3,7 +3,7 @@ name: My Project
 entry_points:
     train:
         parameters:
-            lr: {type: float, default: 0.0001}
+            lr: {type: float, default: 0.001}
             width: {type: int, default: 224}
             height: {type: int, default: 224}
             weight_decay: {type: float, default: 0.0}

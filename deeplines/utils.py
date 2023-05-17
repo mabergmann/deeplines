@@ -8,12 +8,12 @@ from .line import Line
 
 def draw_line(image: np.array, line: Line, color: tuple[int, int, int], thickness: int, confidence=False):
     p0 = (
-            int(line.cx - line.length * math.cos(line.angle)),
-            int(line.cy - line.length * math.sin(line.angle))
+        int(line.p0()[0]),
+        int(line.p0()[1])
     )
     p1 = (
-            int(line.cx + line.length * math.cos(line.angle)),
-            int(line.cy + line.length * math.sin(line.angle))
+        int(line.p1()[0]),
+        int(line.p1()[1])
     )
     image = cv2.line(image, p0, p1, color, thickness)
     if confidence:
@@ -57,23 +57,12 @@ def get_lines_from_output(output, image_width, image_height, threshold=.5):
     for img_output in output:
         image_lines = []
         for n, l in enumerate(img_output):
-            objectness = l[0]
+            objectness = float(l[0])
             if objectness >= threshold:
-                cx = n * image_width / len(img_output)
-                cx += image_width / (len(img_output) * 2)  # add it to the center
-
-                cy = image_height / 2
-
-                left = cx - l[1] * image_width
-                right = cx + l[2] * image_width
-                top = cy - l[3] * image_height
-                bottom = cy - l[4] * image_height
-
-                cx = left + (right - left) / 2
-                cy = top + (bottom - top) / 2
-
-                length = math.sqrt((left - right) ** 2 + (top - bottom) ** 2)
-                angle = math.acos((right-left)/length)
+                cx = float(l[1] * image_width)
+                cy = float(l[2] * image_height)
+                angle = float(l[3] * np.pi)
+                length = float(l[4] * image_width)
 
                 image_lines.append(Line(
                     cx=cx,
@@ -87,12 +76,70 @@ def get_lines_from_output(output, image_width, image_height, threshold=.5):
     return batch_lines
 
 
-def draw_result(batch_images, batch_lines):
+# def get_lines_from_output(output, image_width, image_height, threshold=.5):
+#     batch_lines = []
+#     for img_output in output:
+#         image_lines = []
+#         for n, l in enumerate(img_output):
+#             objectness = l[0]
+#             if objectness >= threshold:
+#                 cx = n * image_width / len(img_output)
+#                 cx += image_width / (len(img_output) * 2)  # add it to the center
+
+#                 cy = image_height / 2
+
+#                 left = cx - l[1] * image_width
+#                 right = cx + l[2] * image_width
+#                 top = cy - l[3] * image_height
+#                 bottom = cy + l[4] * image_height
+
+#                 cx = left + (right - left) / 2
+#                 cy = top + (bottom - top) / 2
+
+#                 length = math.sqrt((left - right) ** 2 + (top - bottom) ** 2)
+                
+#                 delta_x = right - left
+#                 delta_y = bottom - top
+
+#                 angle = math.atan2(delta_y, delta_x)
+
+#                 image_lines.append(Line(
+#                     cx=cx,
+#                     cy=cy,
+#                     length=length,
+#                     angle=angle,
+#                     confidence=objectness
+#                 ))
+#         batch_lines.append(image_lines)
+
+#     return batch_lines
+
+
+def get_classifications_from_output(output):
+    batch_classifications = output[:, :, 0].cpu().numpy()
+    return batch_classifications
+
+
+def draw_result(batch_images, batch_lines, batch_classifications):
     output = []
-    for img, lines in zip(batch_images, batch_lines):
+    for img, lines, classifications in zip(batch_images, batch_lines, batch_classifications):
         img_np = img.cpu().numpy().transpose((1, 2, 0)).copy()
-        for line in lines:
-            img_np = draw_line(img_np, line, (0, 0, 255), 2, confidence=False)
+
+        # Draw lines
+        for conf in lines:
+            img_np = draw_line(img_np, conf, (0, 0, 255), 2, confidence=False)
+
+        img_np = cv2.resize(img_np, None, fx=5, fy=5)
+
+        # Draw classifications
+        for n in range(len(classifications)):
+            x = int((n + 1) * img_np.shape[1] / len(classifications))
+            h = img_np.shape[0]
+            img_np = cv2.line(img_np, (x, 0), (x, h), (0, 0, 255), 2)
+        for n, conf in enumerate(classifications):
+            conf = f"{float(conf):.2f}"
+            cx = img_np.shape[1] * n / len(classifications)
+            img_np = cv2.putText(img_np, conf, (int(cx), 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))
 
         output.append(img_np)
 

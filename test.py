@@ -1,4 +1,5 @@
 import argparse
+
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import MLFlowLogger
 
@@ -53,12 +54,6 @@ def main():
 
     data = RandomDataModel(args.batch_size, args.width, args.height)
 
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        save_top_k=1,
-        monitor="val_f1",
-        mode="max",
-    )
-
     engine = Engine(args)
 
     trainer = pl.Trainer(
@@ -67,7 +62,7 @@ def main():
     )
     test_results = trainer.test(
         engine, data,
-        ckpt_path="/home/matheus/Workspace/deeplines/mlruns/705148703057156592/70f0fc1337474a29bc21fc377e382618/checkpoints/epoch=70-step=1136.ckpt"
+        ckpt_path="/home/matheus/Workspace/deeplines/mlruns/731260576592594309/8697d9d490c841668fc580ba12b71d0f/checkpoints/epoch=209-step=3360.ckpt"
     )
 
     print(test_results)

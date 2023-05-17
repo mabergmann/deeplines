@@ -22,3 +22,14 @@ def test_same_lines(metric_accumulator):
     assert metric_accumulator.get_recall() == 1
     assert metric_accumulator.get_precision() == 1
     assert metric_accumulator.get_f1() == 1
+
+
+def test_two_detected_on_expected(metric_accumulator):
+    detected_lines = [[Line(cx=10, cy=10, angle=0, length=10), Line(cx=20, cy=10, angle=0, length=10)]]
+    gt_lines = [[Line(cx=10, cy=10, angle=0, length=10)]]
+
+    metric_accumulator.update(detected_lines, gt_lines)
+
+    assert metric_accumulator.get_recall() == 1
+    assert metric_accumulator.get_precision() == .5
+    assert pytest.approx(metric_accumulator.get_f1()) == .6666666

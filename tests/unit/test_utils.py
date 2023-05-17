@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import torch
 
 from deeplines import utils
@@ -25,9 +26,14 @@ def test_line_distance():
 
     assert utils.get_distance_between_lines([l1], [l2])[0, 0] == 0
 
+    l1 = Line(cx=10, cy=100, angle=0, length=100)
+    l2 = Line(cx=100, cy=100, angle=0, length=100)
 
-def test_get_lines_from_output():
-    output = torch.zeros((1, 9, 1))
+    assert utils.get_distance_between_lines([l1], [l2])[0, 0] == 90
+
+
+def test_get_lines_from_output_1():
+    output = torch.zeros((1, 9, 5))
     output[0, 4, 0] = 1
 
     lines = utils.get_lines_from_output(output, 224, 224)
@@ -35,3 +41,21 @@ def test_get_lines_from_output():
     assert len(lines) == 1
     assert len(lines[0]) == 1
     assert lines[0][0].cx == 112
+
+
+def test_get_lines_from_output_2():
+    output = torch.zeros((1, 9, 5))
+    output[0, 1, 0] = 1
+    output[0, 1, 1] = 58.3333333/800
+    output[0, 1, 2] = -8.3333333/800
+    output[0, 1, 3] = 300/800
+    output[0, 1, 4] = -300/800
+
+    lines = utils.get_lines_from_output(output, 800, 800)
+
+    assert len(lines) == 1
+    assert len(lines[0]) == 1
+    assert pytest.approx(lines[0][0].cx) == 100
+    assert pytest.approx(lines[0][0].cy) == 100
+    assert pytest.approx(lines[0][0].angle) == 0
+    assert pytest.approx(lines[0][0].length) == 50

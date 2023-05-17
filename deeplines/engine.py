@@ -2,10 +2,10 @@ import cv2
 import pytorch_lightning as pl
 import torch
 
+from . import utils
 from .loss import DeepLineLoss
 from .metrics import MetricAccumulator
 from .model import DeepLines
-from . import utils
 
 
 class Engine(pl.LightningModule):
@@ -14,6 +14,7 @@ class Engine(pl.LightningModule):
         self.image_size = (args.width, args.height)
         self.n_columns = args.n_columns
         self.args = args
+        print(args)
 
         self.model = DeepLines(self.n_columns, args.backbone)
         self.loss = DeepLineLoss(self.image_size, self.n_columns)
@@ -36,14 +37,17 @@ class Engine(pl.LightningModule):
         x, y = train_batch
         pred = self.model(x)
         loss = self.loss(pred, y)
+        total_loss = sum([loss[k] for k in loss.keys()]) / len(loss)
         lines = utils.get_lines_from_output(
             pred,
             self.image_size[0],
             self.image_size[1]
         )
         self.train_metric_accumulator.update(lines, y)
-        self.log('train_loss', loss)
-        return loss
+        self.log('train_loss', total_loss)
+        for k in loss.keys():
+            self.log(f'train_{k}_loss', loss[k])
+        return total_loss
 
     def on_train_epoch_end(self):
         self.log('train_precision', self.train_metric_accumulator.get_precision())
@@ -55,14 +59,17 @@ class Engine(pl.LightningModule):
         x, y = val_batch
         pred = self.model(x)
         loss = self.loss(pred, y)
+        total_loss = sum([loss[k] for k in loss.keys()]) / len(loss)
         lines = utils.get_lines_from_output(
             pred,
             self.image_size[0],
             self.image_size[1]
         )
         self.val_metric_accumulator.update(lines, y)
-        self.log('val_loss', loss)
-        return loss
+        self.log('val_loss', total_loss)
+        for k in loss.keys():
+            self.log(f'val_{k}_loss', loss[k])
+        return total_loss
 
     def on_validation_epoch_end(self):
         self.log('val_precision', self.val_metric_accumulator.get_precision())
@@ -74,20 +81,32 @@ class Engine(pl.LightningModule):
         x, y = test_batch
         pred = self.model(x)
         loss = self.loss(pred, y)
+        total_loss = sum([loss[k] for k in loss.keys()]) / len(loss)
         lines = utils.get_lines_from_output(
             pred,
             self.image_size[0],
             self.image_size[1]
         )
+        classifications = utils.get_classifications_from_output(
+            pred
+        )
+        # print("lines:")
+        # for lines_img, y_img in zip(lines, y):
+        #     for l in lines_img:
+        #         print("\t",l.cx, l.cy, l.angle, l.length)
+        #         l.length = y_img[0].length
+        #     for l in y_img:
+        #         print("\t",l.cx, l.cy, l.angle, l.length)
         self.test_metric_accumulator.update(lines, y)
-        self.log('test_loss', loss)
+        self.log('test_loss', total_loss)
+        for k in loss.keys():
+            self.log(f'test_{k}_loss', loss[k])
 
-        images = utils.draw_result(x, lines)
+        images = utils.draw_result(x, lines, classifications)
         for n, i in enumerate(images):
             cv2.imwrite(f"output/{batch_idx}_{n}.png", i)
 
-
-        return loss
+        return total_loss
 
     def on_test_epoch_end(self):
         self.log('test_precision', self.test_metric_accumulator.get_precision())

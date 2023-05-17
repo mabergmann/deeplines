@@ -1,8 +1,9 @@
 import math
+import random
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-import random
 
 from ..line import Line
 from ..utils import draw_line
@@ -27,11 +28,20 @@ class RandomLines(Dataset):
         for i in range(n_lines):
             cx = random.randint(0, self.image_size[1])
             cy = random.randint(0, self.image_size[0])
-            angle = random.random() * 2 * np.pi
+            angle = random.random() * np.pi
             max_length = self.maximum_length(cx, cy, angle)
             length = random.random() * max_length
             a_line = Line(cx=cx, cy=cy, angle=angle, length=length)
             lines.append(a_line)
+
+            # try:
+            #     assert a_line.left() >= 0
+            #     assert a_line.top() >= 0
+            #     assert a_line.right() <= self.image_size[0]
+            #     assert a_line.bottom() <= self.image_size[1]
+            # except:
+            #     print(cx, cy, angle, length, max_length)
+            #     exit()
 
             img = draw_line(img, a_line, (255, 255, 255), 3)
 
@@ -43,8 +53,8 @@ class RandomLines(Dataset):
         w, h = self.image_size
 
         # Calculate line length in both x and y directions
-        x_length = min(cx, w - cx) / math.cos(angle)
-        y_length = min(cy, h - cy) / math.sin(angle)
+        x_length = min(cx, w - cx) / math.cos(angle) if math.cos(angle) != 0 else float("inf")
+        y_length = min(cy, h - cy) / math.sin(angle) if math.sin(angle) != 0 else float("inf")
 
         # Return the minimum of the two lengths
         return min(x_length, y_length)
