@@ -31,7 +31,7 @@ class RandomDataModel(pl.LightningDataModule):
             self.train_dataset,
             batch_size=int(self.batch_size),
             collate_fn=self.train_dataset.collate_fn,
-            num_workers=0,
+            num_workers=12,
             shuffle=True
         )
 

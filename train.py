@@ -88,7 +88,8 @@ def main():
         num_sanity_val_steps=0,
         max_epochs=500,
         gradient_clip_val=0.5,
-        gradient_clip_algorithm="norm"
+        gradient_clip_algorithm="norm",
+        log_every_n_steps=32
     )
     trainer.tune(engine, datamodule=data)
     trainer.fit(engine, datamodule=data)

@@ -37,7 +37,7 @@ class Engine(pl.LightningModule):
         x, y = train_batch
         pred = self.model(x)
         loss = self.loss(pred, y)
-        total_loss = sum([loss[k] for k in loss.keys()]) / len(loss)
+        total_loss = sum([loss[k] for k in loss.keys()])
         lines = utils.get_lines_from_output(
             pred,
             self.image_size[0],
@@ -59,7 +59,7 @@ class Engine(pl.LightningModule):
         x, y = val_batch
         pred = self.model(x)
         loss = self.loss(pred, y)
-        total_loss = sum([loss[k] for k in loss.keys()]) / len(loss)
+        total_loss = sum([loss[k] for k in loss.keys()])
         lines = utils.get_lines_from_output(
             pred,
             self.image_size[0],

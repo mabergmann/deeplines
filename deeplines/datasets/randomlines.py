@@ -53,8 +53,8 @@ class RandomLines(Dataset):
         w, h = self.image_size
 
         # Calculate line length in both x and y directions
-        x_length = min(cx, w - cx) / math.cos(angle) if math.cos(angle) != 0 else float("inf")
-        y_length = min(cy, h - cy) / math.sin(angle) if math.sin(angle) != 0 else float("inf")
+        x_length = abs(min(cx, w - cx) / math.cos(angle)) if math.cos(angle) != 0 else float("inf")
+        y_length = abs(min(cy, h - cy) / math.sin(angle)) if math.sin(angle) != 0 else float("inf")
 
         # Return the minimum of the two lengths
         return min(x_length, y_length)
