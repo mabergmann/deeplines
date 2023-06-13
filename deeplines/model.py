@@ -4,7 +4,7 @@ from torchvision import models
 
 
 class DeepLines(nn.Module):
-    def __init__(self, n_columns, backbone):
+    def __init__(self, n_columns, anchors_per_column, backbone):
         super().__init__()
 
         # init a pretrained resnet
@@ -27,19 +27,20 @@ class DeepLines(nn.Module):
             # nn.Linear(4096, 4096),
             # nn.ReLU(inplace=True),
             # nn.Linear(4096, n_columns * 5),
-            nn.Linear(num_filters, n_columns * 5),
+            nn.Linear(num_filters, n_columns * anchors_per_column * 5),
         )
 
         # self.classifier = nn.Linear(num_filters, n_columns * 5)
         self.n_columns = n_columns
+        self.anchors_per_column = anchors_per_column
 
     def forward(self, x):
         representations = self.feature_extractor(x).flatten(1)
         x = self.classifier(representations)
-        x = x.reshape((x.shape[0], self.n_columns, -1))
+        x = x.reshape((x.shape[0], self.n_columns, self.anchors_per_column, -1))
 
-        # x[:, :, 0] = torch.sigmoid(x[:, :, 0])
+        x[:, :, :, 0] = torch.sigmoid(x[:, :, :, 0])
         # x[:, :, :3] = torch.sigmoid(x[:, :, :3])
-        x = torch.sigmoid(x)
+        # x = torch.sigmoid(x)
 
         return x

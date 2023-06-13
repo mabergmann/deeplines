@@ -35,6 +35,12 @@ def parse_args():
         help="Number of columns outputed by the model"
     )
     parser.add_argument(
+        "--anchors_per_column",
+        type=int,
+        help="Number of anchors in each column outputed by the model"
+    )
+    parser.add
+    parser.add_argument(
         "--backbone",
         type=str,
         help="Backbone that should be used",
@@ -62,7 +68,7 @@ def main():
     )
     test_results = trainer.test(
         engine, data,
-        ckpt_path="/home/matheus/Workspace/deeplines/mlruns/731260576592594309/95028484c5f74f2baadb0495aefb2687/checkpoints/epoch=107-step=1728.ckpt"
+        ckpt_path="/home/matheus/Workspace/deeplines/mlruns/731260576592594309/a14e22523fcc4a16a40879ffda456c30/checkpoints/epoch=470-step=7536.ckpt"
     )
 
     print(test_results)

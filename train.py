@@ -45,6 +45,11 @@ def parse_args():
         help="Number of columns outputed by the model"
     )
     parser.add_argument(
+        "--anchors_per_column",
+        type=int,
+        help="Number of anchors in each column outputed by the model"
+    )
+    parser.add_argument(
         "--backbone",
         type=str,
         help="Backbone that should be used",
@@ -87,8 +92,6 @@ def main():
         logger=logger,
         num_sanity_val_steps=0,
         max_epochs=500,
-        gradient_clip_val=0.5,
-        gradient_clip_algorithm="norm",
         log_every_n_steps=32
     )
     trainer.tune(engine, datamodule=data)

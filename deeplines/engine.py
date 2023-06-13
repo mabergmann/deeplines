@@ -13,11 +13,11 @@ class Engine(pl.LightningModule):
         super().__init__()
         self.image_size = (args.width, args.height)
         self.n_columns = args.n_columns
+        self.anchors_per_column = args.anchors_per_column
         self.args = args
-        print(args)
 
-        self.model = DeepLines(self.n_columns, args.backbone)
-        self.loss = DeepLineLoss(self.image_size, self.n_columns)
+        self.model = DeepLines(self.n_columns, self.anchors_per_column, args.backbone)
+        self.loss = DeepLineLoss(self.image_size, self.n_columns, self.anchors_per_column)
 
         self.train_metric_accumulator = MetricAccumulator()
         self.val_metric_accumulator = MetricAccumulator()

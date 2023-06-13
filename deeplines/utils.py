@@ -56,21 +56,22 @@ def get_lines_from_output(output, image_width, image_height, threshold=.5):
     batch_lines = []
     for img_output in output:
         image_lines = []
-        for n, l in enumerate(img_output):
-            objectness = float(l[0])
-            if objectness >= threshold:
-                cx = float(l[1] * image_width)
-                cy = float(l[2] * image_height)
-                angle = float(l[3] * np.pi)
-                length = float(l[4] * image_width)
+        for n, c in enumerate(img_output):
+            for l in c:
+                objectness = float(l[0])
+                if objectness >= threshold:
+                    cx = float(l[1] * image_width)
+                    cy = float(l[2] * image_height)
+                    angle = float(l[3] * np.pi)
+                    length = float(l[4] * image_width)
 
-                image_lines.append(Line(
-                    cx=cx,
-                    cy=cy,
-                    length=length,
-                    angle=angle,
-                    confidence=objectness
-                ))
+                    image_lines.append(Line(
+                        cx=cx,
+                        cy=cy,
+                        length=length,
+                        angle=angle,
+                        confidence=objectness
+                    ))
         batch_lines.append(image_lines)
 
     return batch_lines
@@ -131,15 +132,15 @@ def draw_result(batch_images, batch_lines, batch_classifications):
 
         img_np = cv2.resize(img_np, None, fx=5, fy=5)
 
-        # Draw classifications
-        for n in range(len(classifications)):
-            x = int((n + 1) * img_np.shape[1] / len(classifications))
-            h = img_np.shape[0]
-            img_np = cv2.line(img_np, (x, 0), (x, h), (0, 0, 255), 2)
-        for n, conf in enumerate(classifications):
-            conf = f"{float(conf):.2f}"
-            cx = img_np.shape[1] * n / len(classifications)
-            img_np = cv2.putText(img_np, conf, (int(cx), 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))
+        # # Draw classifications
+        # for n in range(len(classifications)):
+        #     x = int((n + 1) * img_np.shape[1] / len(classifications))
+        #     h = img_np.shape[0]
+        #     img_np = cv2.line(img_np, (x, 0), (x, h), (0, 0, 255), 2)
+        # for n, conf in enumerate(classifications):
+        #     conf = f"{float(conf):.2f}"
+        #     cx = img_np.shape[1] * n / len(classifications)
+        #     img_np = cv2.putText(img_np, conf, (int(cx), 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))
 
         output.append(img_np)
 
