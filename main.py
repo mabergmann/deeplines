@@ -1,17 +1,17 @@
 import argparse
-
-import pytorch_lightning as pl
-import pathlib
-from pytorch_lightning.loggers import MLFlowLogger
-
-from deeplines.datamodel import RandomDataModel
-from deeplines.engine import Engine
+from train import train
+from test import test
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        prog="Deeplines test",
-        description="Tests the Deeplines model",
+        prog="Deeplines train",
+        description="Trains the Deeplines model",
+    )
+    parser.add_argument(
+        "--lr",
+        type=float,
+        help="Value between 0 and 1, defining lerarning rate"
     )
     parser.add_argument(
         "--height",
@@ -22,6 +22,11 @@ def parse_args():
         "--width",
         type=int,
         help="Width of the image"
+    )
+    parser.add_argument(
+        "--weight_decay",
+        type=float,
+        help="Value between 0 and 1, defining weight decay"
     )
     parser.add_argument(
         "--dataset",
@@ -40,7 +45,6 @@ def parse_args():
         type=int,
         help="Number of anchors in each column outputed by the model"
     )
-    parser.add
     parser.add_argument(
         "--backbone",
         type=str,
@@ -55,34 +59,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def test(args, run_id, experiment_id="524490727776501304"):
-    pl.seed_everything(42, workers=True)
-
-    data = RandomDataModel(args.batch_size, args.width, args.height)
-
-    engine = Engine(args)
-
-    logger = MLFlowLogger(
-        experiment_name="deeplines",
-        log_model=True,
-        run_id=run_id
-    )
-
-    trainer = pl.Trainer(
-        accelerator="gpu",
-        devices=1,
-        logger=logger
-    )
-
-    ckpt_path = str(next(pathlib.Path(f"mlruns/{experiment_id}/{run_id}/checkpoints").glob("*.ckpt")))
-    test_results = trainer.test(
-        engine, data,
-        ckpt_path=ckpt_path
-    )
-
-    print(test_results)
+def main():
+    args = parse_args()
+    run_id = train(args)
+    test(args, run_id)
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    test(args)
+    main()

@@ -63,8 +63,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-    args = parse_args()
+def train(args):
     pl.seed_everything(42, workers=True)
 
     data = RandomDataModel(args.batch_size, args.width, args.height)
@@ -82,6 +81,8 @@ def main():
         log_model=True,
     )
 
+    print(logger.run_id)
+
     for k, v in vars(args).items():
         logger.experiment.log_param(logger.run_id, k, v)
 
@@ -94,9 +95,12 @@ def main():
         max_epochs=500,
         log_every_n_steps=32
     )
-    trainer.tune(engine, datamodule=data)
+    # trainer.tune(engine, datamodule=data)
     trainer.fit(engine, datamodule=data)
+
+    return str(logger.run_id)
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    train(args)
