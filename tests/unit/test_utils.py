@@ -36,7 +36,7 @@ def test_get_lines_from_output_1():
     output = torch.zeros((1, 9, 5, 5))
     output[0, 4, 0, 0] = 1
 
-    lines = utils.get_lines_from_output(output, 224, 224, nms_threshold=-1)
+    lines = utils.get_lines_from_output(output, 224, 224)
 
     assert len(lines) == 1
     assert len(lines[0]) == 1
@@ -51,7 +51,7 @@ def test_get_lines_from_output_2():
     output[0, 1, 0, 3] = 0
     output[0, 1, 0, 4] = 50/800
 
-    lines = utils.get_lines_from_output(output, 800, 800, nms_threshold=-1)
+    lines = utils.get_lines_from_output(output, 800, 800)
 
     assert len(lines) == 1
     assert len(lines[0]) == 1
@@ -61,15 +61,34 @@ def test_get_lines_from_output_2():
     assert pytest.approx(lines[0][0].length) == 50
 
 
-def test_get_lines_from_output_with_nms():
-    output = torch.zeros((1, 9, 5, 5))
-    output[0, 1, 0, 0] = 1
-    output[0, 1, 0, 1] = 100/800
-    output[0, 1, 0, 2] = 100/800
-    output[0, 1, 0, 3] = 0
-    output[0, 1, 0, 4] = 50/800
+def test_nms_equal():
+    lines = [
+        [
+            Line(cx=100, cy=100, angle=0, length=50, confidence=1),
+            Line(cx=100, cy=100, angle=0, length=50, confidence=1),
+        ]
+    ]
 
-    lines = utils.get_lines_from_output(output, 800, 800, nms_threshold=-1)
+    lines = utils.nms(lines)
+
+    assert len(lines) == 1
+    assert len(lines[0]) == 1
+    assert pytest.approx(lines[0][0].cx) == 100
+    assert pytest.approx(lines[0][0].cy) == 100
+    assert pytest.approx(lines[0][0].angle) == 0
+    assert pytest.approx(lines[0][0].cx) == 100
+    assert pytest.approx(lines[0][0].confidence) == 1
+
+
+def test_nms_similar():
+    lines = [
+        [
+            Line(cx=100, cy=100, angle=0, length=50, confidence=.8),
+            Line(cx=105, cy=99, angle=0.001, length=48, confidence=.75),
+        ]
+    ]
+
+    lines = utils.nms(lines)
 
     assert len(lines) == 1
     assert len(lines[0]) == 1
@@ -77,3 +96,23 @@ def test_get_lines_from_output_with_nms():
     assert pytest.approx(lines[0][0].cy) == 100
     assert pytest.approx(lines[0][0].angle) == 0
     assert pytest.approx(lines[0][0].length) == 50
+    assert pytest.approx(lines[0][0].confidence) == .8
+
+
+def test_nms_similar_unordered():
+    lines = [
+        [
+            Line(cx=105, cy=99, angle=0.001, length=48, confidence=.75),
+            Line(cx=100, cy=100, angle=0, length=50, confidence=.8),
+        ]
+    ]
+
+    lines = utils.nms(lines)
+
+    assert len(lines) == 1
+    assert len(lines[0]) == 1
+    assert pytest.approx(lines[0][0].cx) == 100
+    assert pytest.approx(lines[0][0].cy) == 100
+    assert pytest.approx(lines[0][0].angle) == 0
+    assert pytest.approx(lines[0][0].length) == 50
+    assert pytest.approx(lines[0][0].confidence) == .8

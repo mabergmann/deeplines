@@ -72,9 +72,34 @@ def get_lines_from_output(output, image_width, image_height, threshold=.5):
                         angle=angle,
                         confidence=objectness
                     ))
+
+
         batch_lines.append(image_lines)
 
     return batch_lines
+
+
+def nms(lines, nms_threshold=25):
+    batch_filtered_lines = []
+    for image_lines in lines:
+        filtered_image_lines = []
+        image_lines.sort(key=lambda x: x.confidence, reverse=True)
+        print()
+        for il in image_lines:
+            print(il.confidence)
+        added_mask = np.zeros((len(image_lines)))
+        distances = get_distance_between_lines(image_lines, image_lines)
+        for n, line in enumerate(image_lines):
+            if n == 0:  # No line added yet
+                min_distance = float("inf")
+            else:
+                min_distance = min(distances[n, added_mask==1])
+            if min_distance >= nms_threshold:
+                filtered_image_lines.append(line)
+                added_mask[n] = 1
+        batch_filtered_lines.append(filtered_image_lines)
+    return batch_filtered_lines
+
 
 
 # def get_lines_from_output(output, image_width, image_height, threshold=.5):

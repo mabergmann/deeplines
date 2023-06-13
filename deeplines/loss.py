@@ -92,34 +92,3 @@ class DeepLineLoss(nn.Module):
                         print(cx, cy)
                         exit()
         return regression
-
-    # def get_regression_from_best_match(self, lines_batch, best_match_batch):
-    #     regression = torch.zeros((len(lines_batch), self.n_columns, 4))
-
-    #     for img_idx in range(len(lines_batch)):
-    #         for i in range(self.n_columns):
-    #             cx = i * self.image_size[0] / self.n_columns
-    #             cx += self.image_size[0] / (self.n_columns * 2)  # add it to the center
-
-    #             cy = self.image_size[1] / 2
-
-    #             p0 = best_match_batch[img_idx][i].p0()
-    #             p1 = best_match_batch[img_idx][i].p1()
-
-    #             if p0[0] > p1[0]:
-    #                 p0, p1 = p1, p0
-
-    #             left = p0[0]
-    #             right = p1[0]
-    #             top = p0[1]
-    #             bottom = p1[1]
-    #             regression[img_idx, i, 0] = (cx - left) / self.image_size[0]
-    #             regression[img_idx, i, 1] = (right - cx) / self.image_size[0]
-    #             regression[img_idx, i, 2] = (cy - top) / self.image_size[1]
-    #             regression[img_idx, i, 3] = (bottom - cy) / self.image_size[1]
-    #             # if regression[img_idx, i, :].max() > 1:
-    #             #     print(regression[img_idx, i, :])
-    #             #     print(left, right, top, bottom)
-    #             #     print(cx, cy)
-    #             #     exit()
-    #     return regression
