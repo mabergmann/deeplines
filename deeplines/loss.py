@@ -11,7 +11,7 @@ class DeepLineLoss(nn.Module):
         self.image_size = image_size
         self.n_columns = n_columns
         self.anchors_per_column = anchors_per_column
-        self.bce = torch.nn.BCELoss(reduction='mean')
+        # self.bce = torch.nn.BCELoss(reduction='mean')
         self.mse = torch.nn.MSELoss(reduction='mean')
 
     def forward(self, pred, gt):
@@ -32,16 +32,17 @@ class DeepLineLoss(nn.Module):
                 best_match_image.append(gt_image[best_match_idx])
             best_match_batch.append(best_match_image)
 
-        objectness = self.get_objectness_from_gt(gt)
+        objectness = self.get_objectness_from_gt(gt, distances_batch)
+        objects_mask = self.get_objectness_mask(gt)
         objectness = objectness.to(pred.device)
 
         regression = self.get_regression_from_best_match(lines_batch, best_match_batch)
         regression = regression.to(pred.device)
 
-        loss_objectness = 0.1 * self.bce(pred[:, :, :, 0:1], objectness)
-        loss_center = 0.3 * self.mse(objectness * pred[:, :, :, 1:3], objectness * regression[:, :, :, :2])
-        loss_angle = 0.3 * self.mse(objectness * pred[:, :, :, 3:4], objectness * regression[:, :, :, 2:3])
-        loss_length = 0.3 * self.mse(objectness * pred[:, :, :, 4:], objectness * regression[:, :, :, 3:])
+        loss_objectness = 0.1 * self.mse(pred[:, :, :, 0:1], objectness)
+        loss_center = 0.3 * self.mse(objects_mask * pred[:, :, :, 1:3], objects_mask * regression[:, :, :, :2])
+        loss_angle = 0.3 * self.mse(objects_mask * pred[:, :, :, 3:4], objects_mask * regression[:, :, :, 2:3])
+        loss_length = 0.3 * self.mse(objects_mask * pred[:, :, :, 4:], objects_mask * regression[:, :, :, 3:])
         assert regression[:, :, :, 3:].min() >= 0
         assert regression[:, :, :, 3:].max() <= 1
 
@@ -54,17 +55,21 @@ class DeepLineLoss(nn.Module):
 
         return loss
 
-    def get_objectness_from_gt(self, gt):
+    def get_objectness_from_gt(self, gt, distances_batch):
 
         objectness = torch.zeros((len(gt), self.n_columns, self.anchors_per_column, 1))
+        distances_batch = np.asarray(distances_batch)
 
         for i in range(len(gt)):
-            for j in range(len(gt[i])):
-                x = gt[i][j].cx * self.n_columns // self.image_size[1]
-                if x == self.n_columns:
-                    x = self.n_columns - 1
-                objectness[i, x, :, 0] = 1
+            for j in range(self.n_columns):
+                for k in range(self.anchors_per_column):
+                    objectness[i, j, k, 0] = self.distance_to_confidence(
+                        min(distances_batch[i, :, j * self.anchors_per_column + k])
+                    )
         return objectness
+
+    def distance_to_confidence(self, distance):
+        return 1 - (distance / 20) if distance < 20 else 0
 
     def get_regression_from_best_match(self, lines_batch, best_match_batch):
         regression = torch.zeros((len(lines_batch), self.n_columns, self.anchors_per_column, 4))
@@ -92,3 +97,15 @@ class DeepLineLoss(nn.Module):
                         print(cx, cy)
                         exit()
         return regression
+
+    def get_objectness_mask(self, gt):
+
+        objectness = torch.zeros((len(gt), self.n_columns, self.anchors_per_column, 1))
+
+        for i in range(len(gt)):
+            for j in range(len(gt[i])):
+                x = gt[i][j].cx * self.n_columns // self.image_size[1]
+                if x == self.n_columns:
+                    x = self.n_columns - 1
+                objectness[i, x, :, 0] = 1
+        return objectness

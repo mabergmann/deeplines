@@ -13,13 +13,24 @@ def loss():
 
 def test_get_objectness(loss: DeepLineLoss):
     gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
-    objectness = loss.get_objectness_from_gt(gt)
+
+    distances = np.zeros((1, 1, 45))
+    distances[...] = 100
+    distances[0, 0, 5] = 15
+
+    objectness = loss.get_objectness_from_gt(gt, distances)
     for i in range(9):
         for j in range(5):
-            if i == 1:
-                assert objectness[0, i, j] == 1
+            if i == 1 and j == 0:
+                assert objectness[0, i, j] == loss.distance_to_confidence(15)
             else:
                 assert objectness[0, i, j] == 0
+
+
+def test_distance_to_confidence(loss: DeepLineLoss):
+    assert loss.distance_to_confidence(10) == 0.5
+    assert loss.distance_to_confidence(0) == 1
+    assert loss.distance_to_confidence(float("inf")) == 0
 
 
 def test_get_regression(loss: DeepLineLoss):

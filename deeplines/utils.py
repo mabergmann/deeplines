@@ -17,7 +17,7 @@ def draw_line(image: np.array, line: Line, color: tuple[int, int, int], thicknes
     )
     image = cv2.line(image, p0, p1, color, thickness)
     if confidence:
-        image = cv2.putText(image, f"line.confidence", p0, cv2.FONT_HERSHEY_SIMPLEX, 1, color)
+        image = cv2.putText(image, f"{line.confidence}", p0, cv2.FONT_HERSHEY_SIMPLEX, 1, color)
 
     return image
 
@@ -57,13 +57,13 @@ def get_lines_from_output(output, image_width, image_height, threshold=.5):
     for img_output in output:
         image_lines = []
         for n, c in enumerate(img_output):
-            for l in c:
-                objectness = float(l[0])
+            for line in c:
+                objectness = float(line[0])
                 if objectness >= threshold:
-                    cx = float(l[1] * image_width)
-                    cy = float(l[2] * image_height)
-                    angle = float(l[3] * np.pi)
-                    length = float(l[4] * image_width)
+                    cx = float(line[1] * image_width)
+                    cy = float(line[2] * image_height)
+                    angle = float(line[3] * np.pi)
+                    length = float(line[4] * image_width)
 
                     image_lines.append(Line(
                         cx=cx,
@@ -72,7 +72,6 @@ def get_lines_from_output(output, image_width, image_height, threshold=.5):
                         angle=angle,
                         confidence=objectness
                     ))
-
 
         batch_lines.append(image_lines)
 
@@ -84,61 +83,18 @@ def nms(lines, nms_threshold=25):
     for image_lines in lines:
         filtered_image_lines = []
         image_lines.sort(key=lambda x: x.confidence, reverse=True)
-        print()
-        for il in image_lines:
-            print(il.confidence)
         added_mask = np.zeros((len(image_lines)))
         distances = get_distance_between_lines(image_lines, image_lines)
         for n, line in enumerate(image_lines):
             if n == 0:  # No line added yet
                 min_distance = float("inf")
             else:
-                min_distance = min(distances[n, added_mask==1])
+                min_distance = min(distances[n, added_mask == 1])
             if min_distance >= nms_threshold:
                 filtered_image_lines.append(line)
                 added_mask[n] = 1
         batch_filtered_lines.append(filtered_image_lines)
     return batch_filtered_lines
-
-
-
-# def get_lines_from_output(output, image_width, image_height, threshold=.5):
-#     batch_lines = []
-#     for img_output in output:
-#         image_lines = []
-#         for n, l in enumerate(img_output):
-#             objectness = l[0]
-#             if objectness >= threshold:
-#                 cx = n * image_width / len(img_output)
-#                 cx += image_width / (len(img_output) * 2)  # add it to the center
-
-#                 cy = image_height / 2
-
-#                 left = cx - l[1] * image_width
-#                 right = cx + l[2] * image_width
-#                 top = cy - l[3] * image_height
-#                 bottom = cy + l[4] * image_height
-
-#                 cx = left + (right - left) / 2
-#                 cy = top + (bottom - top) / 2
-
-#                 length = math.sqrt((left - right) ** 2 + (top - bottom) ** 2)
-                
-#                 delta_x = right - left
-#                 delta_y = bottom - top
-
-#                 angle = math.atan2(delta_y, delta_x)
-
-#                 image_lines.append(Line(
-#                     cx=cx,
-#                     cy=cy,
-#                     length=length,
-#                     angle=angle,
-#                     confidence=objectness
-#                 ))
-#         batch_lines.append(image_lines)
-
-#     return batch_lines
 
 
 def get_classifications_from_output(output):

@@ -43,6 +43,7 @@ class Engine(pl.LightningModule):
             self.image_size[0],
             self.image_size[1]
         )
+        lines = utils.nms(lines)
         self.train_metric_accumulator.update(lines, y)
         self.log('train_loss', total_loss)
         for k in loss.keys():
@@ -65,6 +66,7 @@ class Engine(pl.LightningModule):
             self.image_size[0],
             self.image_size[1]
         )
+        lines = utils.nms(lines)
         self.val_metric_accumulator.update(lines, y)
         self.log('val_loss', total_loss)
         for k in loss.keys():
@@ -87,6 +89,7 @@ class Engine(pl.LightningModule):
             self.image_size[0],
             self.image_size[1]
         )
+        lines = utils.nms(lines)
         classifications = utils.get_classifications_from_output(
             pred
         )
