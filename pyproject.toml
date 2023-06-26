@@ -1,6 +1,5 @@
 [tool.autopep8]
     max_line_length = 128
-    in-place = true
     recursive = true
 [tool.docformatter]
     recursive = true
