@@ -2,17 +2,18 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 from . import utils
+from .line import Line
 
 
-class MetricAccumulator(object):
+class MetricAccumulator:
     correct_threshold = 20
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.tp = 0
         self.fp = 0
         self.fn = 0
 
-    def update(self, predicted_batch, true_batch):
+    def update(self, predicted_batch: list[list[Line]], true_batch: list[list[Line]]) -> None:
         for y_true, y_pred in zip(true_batch, predicted_batch):
             prediction_len = len(y_pred)
             gt_len = len(y_true)
@@ -37,17 +38,17 @@ class MetricAccumulator(object):
             self.fp += fp
             self.fn += fn
 
-    def get_precision(self):
+    def get_precision(self) -> float:
         if self.tp + self.fp == 0:
             return 1
         return self.tp / (self.tp + self.fp)
 
-    def get_recall(self):
+    def get_recall(self) -> float:
         if self.tp + self.fn == 0:
             return 1
         return self.tp / (self.tp + self.fn)
 
-    def get_f1(self):
+    def get_f1(self) -> float:
         recall = self.get_recall()
         precision = self.get_precision()
         if precision > 0 and recall > 0:
@@ -56,7 +57,7 @@ class MetricAccumulator(object):
             f1_score = 0
         return f1_score
 
-    def reset(self):
+    def reset(self) -> None:
         self.tp = 0
         self.fp = 0
         self.fn = 0

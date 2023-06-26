@@ -5,49 +5,49 @@ from .datasets.randomlines import RandomLines
 
 
 class RandomDataModel(pl.LightningDataModule):
-    def __init__(self, batch_size, width, height):
+    def __init__(self, batch_size: int, width: int, height: int) -> None:
         super().__init__()
         self.batch_size = batch_size
 
         self.train_dataset = RandomLines(
             image_size=(width, height),
             min_lines=1,
-            max_lines=5
+            max_lines=5,
         )
         self.val_dataset = RandomLines(
             image_size=(width, height),
             min_lines=1,
-            max_lines=5
+            max_lines=5,
         )
 
         self.test_dataset = RandomLines(
             image_size=(width, height),
             min_lines=1,
-            max_lines=5
+            max_lines=5,
         )
 
-    def train_dataloader(self):
+    def train_dataloader(self) -> DataLoader:
         return DataLoader(
             self.train_dataset,
             batch_size=int(self.batch_size),
             collate_fn=self.train_dataset.collate_fn,
             num_workers=12,
-            shuffle=True
+            shuffle=True,
         )
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> DataLoader:
         return DataLoader(
             self.val_dataset,
             batch_size=int(self.batch_size),
             collate_fn=self.val_dataset.collate_fn,
             num_workers=12,
-            shuffle=False
+            shuffle=False,
         )
 
-    def test_dataloader(self):
+    def test_dataloader(self) -> DataLoader:
         return DataLoader(
             self.test_dataset,
             batch_size=1,
             collate_fn=self.test_dataset.collate_fn,
-            num_workers=12
+            num_workers=12,
         )

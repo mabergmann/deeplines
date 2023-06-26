@@ -15,10 +15,10 @@ class RandomLines(Dataset):
         self.min_lines = min_lines
         self.max_lines = max_lines
 
-    def __len__(self):
+    def __len__(self) -> int:
         return 500
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, list[Line]]:
         img = np.zeros((self.image_size[0], self.image_size[1], 3))
 
         n_lines = random.randint(self.min_lines, self.max_lines)
@@ -49,17 +49,17 @@ class RandomLines(Dataset):
 
         return img_th, lines
 
-    def maximum_length(self, cx, cy, angle):
+    def maximum_length(self, cx: float, cy: float, angle: float) -> float:
         w, h = self.image_size
 
         # Calculate line length in both x and y directions
-        x_length = abs(min(cx, w - cx) / math.cos(angle)) if math.cos(angle) != 0 else float("inf")
-        y_length = abs(min(cy, h - cy) / math.sin(angle)) if math.sin(angle) != 0 else float("inf")
+        x_length = abs(min(cx, w - cx) / math.cos(angle)) if math.cos(angle) != 0 else float('inf')
+        y_length = abs(min(cy, h - cy) / math.sin(angle)) if math.sin(angle) != 0 else float('inf')
 
         # Return the minimum of the two lengths
         return min(x_length, y_length)
 
-    def collate_fn(self, batch):
+    def collate_fn(self, batch: list[tuple[torch.Tensor, list[Line]]]) -> tuple[torch.Tensor, list[list[Line]]]:
         images = []
         lines = []
 
