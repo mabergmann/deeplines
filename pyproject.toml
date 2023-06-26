@@ -9,7 +9,6 @@
     in-place = true
     blank = true
 [tool.mypy]
-    plugins = numpy.typing.mypy_plugin
     files = ["deeplines/"]
     check_untyped_defs = true
     disallow_any_generics = true

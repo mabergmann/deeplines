@@ -42,12 +42,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--n_columns',
         type=int,
-        help='Number of columns outputed by the model',
+        help='Number of columns outputted by the model',
     )
     parser.add_argument(
         '--anchors_per_column',
         type=int,
-        help='Number of anchors in each column outputed by the model',
+        help='Number of anchors in each column outputted by the model',
     )
     parser.add_argument(
         '--backbone',
