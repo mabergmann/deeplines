@@ -6,13 +6,11 @@ build_dependencies:
   - setuptools
 # Dependencies required to run the project.
 dependencies:
-  - flake8
   - lightning[extra]
   - mlflow==2.4.1
   - numpy==1.23.5
   - opencv-python==4.7.0.68
   - pre-commit==3.0.4
-  - pytest==7.2.1
   - pytorch-lightning
   - scipy==1.10.0
   - torch

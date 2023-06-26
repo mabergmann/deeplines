@@ -27,6 +27,30 @@ def test_get_objectness(loss: DeepLineLoss):
                 assert objectness[0, i, j] == 0
 
 
+def test_get_objectness_multiple_lines(loss: DeepLineLoss):
+    gt = [
+        [
+            Line(cx=100, cy=100, angle=0, length=50),
+            Line(cx=200, cy=100, angle=30, length=42),
+            Line(cx=100, cy=200, angle=60, length=28),
+            Line(cx=200, cy=200, angle=90, length=200),
+            Line(cx=123, cy=321, angle=42, length=13)
+        ]
+    ]
+
+    distances = np.zeros((1, 5, 45))
+    distances[...] = 100
+    distances[0, 0, 5] = 15
+
+    objectness = loss.get_objectness_from_gt(gt, distances)
+    for i in range(9):
+        for j in range(5):
+            if i == 1 and j == 0:
+                assert objectness[0, i, j] == loss.distance_to_confidence(15)
+            else:
+                assert objectness[0, i, j] == 0
+
+
 def test_distance_to_confidence(loss: DeepLineLoss):
     assert loss.distance_to_confidence(10) == 0.5
     assert loss.distance_to_confidence(0) == 1
