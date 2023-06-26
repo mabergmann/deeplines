@@ -12,7 +12,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         '--lr',
         type=float,
-        help='Value between 0 and 1, defining lerarning rate',
+        help='Value between 0 and 1, defining learning rate',
     )
     parser.add_argument(
         '--height',
