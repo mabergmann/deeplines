@@ -14,9 +14,9 @@ def loss():
 def test_get_objectness(loss: DeepLineLoss):
     gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
 
-    distances = np.zeros((1, 1, 45))
+    distances = np.zeros((1, 45))
     distances[...] = 100
-    distances[0, 0, 5] = 15
+    distances[0, 5] = 15
 
     objectness = loss.get_objectness_from_gt(gt, distances)
     for i in range(9):
@@ -38,9 +38,9 @@ def test_get_objectness_multiple_lines(loss: DeepLineLoss):
         ]
     ]
 
-    distances = np.zeros((1, 5, 45))
+    distances = np.zeros((1, 45))
     distances[...] = 100
-    distances[0, 0, 5] = 15
+    distances[0, 5] = 15
 
     objectness = loss.get_objectness_from_gt(gt, distances)
     for i in range(9):
@@ -88,3 +88,28 @@ def test_one_line_correct(loss: DeepLineLoss):
     pred[0, 1, :, 4] = 50/800
     result = loss(pred, gt)
     assert result["objectness"] == 0
+
+
+def test_get_lines_grouped_by_column(loss: DeepLineLoss) -> None:
+    gt = [
+        Line(cx=100, cy=0, angle=0, length=50),
+        Line(cx=100, cy=100, angle=0, length=50),
+        Line(cx=100, cy=700, angle=0, length=50),
+        Line(cx=500, cy=100, angle=0, length=50),
+        Line(cx=800, cy=100, angle=0, length=50),
+    ]
+
+    lines = loss.get_lines_grouped_by_column(gt)
+    assert len(lines) == 9
+    assert len(lines[0]) == 0
+    assert len(lines[1]) == 3
+    assert len(lines[2]) == 0
+    assert len(lines[3]) == 0
+    assert len(lines[4]) == 0
+    assert len(lines[5]) == 1
+    assert len(lines[6]) == 0
+    assert len(lines[7]) == 0
+    assert len(lines[8]) == 1
+
+
+    

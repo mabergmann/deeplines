@@ -22,15 +22,29 @@ class DeepLineLoss(nn.Module):
 
         for gt_image, lines in zip(gt, lines_batch):
             assert len(lines) == self.n_columns * self.anchors_per_column
-            distances = utils.get_distance_between_lines(gt_image, lines)
-            distances_batch.append(distances)
-
             best_match_image = []
+            distances_image = []
 
-            for n, i in enumerate(lines):
-                best_match_idx = np.argmin(distances[:, n])
-                best_match_image.append(gt_image[best_match_idx])
+            gt_by_column = self.get_lines_grouped_by_column(gt_image)
+
+            for i in range(self.n_columns):
+                if len(gt_by_column[i]) == 0:
+                    best_match_image += [None] * self.anchors_per_column
+                    distances_image += [float('inf')] * self.anchors_per_column
+                    continue
+                column_lines = lines[self.anchors_per_column * i:self.anchors_per_column * (i + 1)]
+                distances = utils.get_distance_between_lines(gt_by_column[i], column_lines)
+
+                best_match_column = []
+
+                for n, _ in enumerate(column_lines):
+                    best_match_idx = np.argmin(distances[:, n])
+                    best_match_column.append(gt_by_column[i][best_match_idx])
+                    distances_image.append(distances[best_match_idx, n])
+                best_match_image += best_match_column
+
             best_match_batch.append(best_match_image)
+            distances_batch.append(distances_image)
 
         objectness = self.get_objectness_from_gt(gt, distances_batch)
         objects_mask = self.get_objectness_mask(gt)
@@ -40,8 +54,8 @@ class DeepLineLoss(nn.Module):
         regression = self.get_regression_from_best_match(lines_batch, best_match_batch)
         regression = regression.to(pred.device)
 
-        loss_objectness = 0.1 * self.bce(pred[:, :, :, 0:1], objects_mask)
-        loss_no_objectness = 0.1 * self.mse(pred[:, :, :, 0:1], objectness)
+        loss_objectness = 0.1 * self.bce(objects_mask * pred[:, :, :, 0:1], objects_mask * objectness)
+        loss_no_objectness = 0.1 * self.mse((1 - objects_mask) * pred[:, :, :, 0:1], (1 - objects_mask) * objectness)
         loss_center = 0.25 * self.mse(objects_mask * pred[:, :, :, 1:3], objects_mask * regression[:, :, :, :2])
         loss_angle = 0.25 * self.mse(objects_mask * pred[:, :, :, 3:4], objects_mask * regression[:, :, :, 2:3])
         loss_length = 0.3 * self.mse(objects_mask * pred[:, :, :, 4:], objects_mask * regression[:, :, :, 3:])
@@ -58,14 +72,14 @@ class DeepLineLoss(nn.Module):
 
         return loss
 
-    def get_objectness_from_gt(self, gt: list[list[Line]], distances_batch: list[np.array]) -> torch.Tensor:
+    def get_objectness_from_gt(self, gt: list[list[Line]], distances_batch: list[list[float]]) -> torch.Tensor:
         objectness = torch.zeros((len(gt), self.n_columns, self.anchors_per_column, 1))
 
         for i in range(len(gt)):
             for j in range(self.n_columns):
                 for k in range(self.anchors_per_column):
                     objectness[i, j, k, 0] = self.distance_to_confidence(
-                        min(distances_batch[i][:, j * self.anchors_per_column + k]),
+                        distances_batch[i][j * self.anchors_per_column + k],
                     )
         return objectness
 
@@ -78,6 +92,8 @@ class DeepLineLoss(nn.Module):
         for img_idx in range(len(lines_batch)):
             for i in range(self.n_columns):
                 for j in range(self.anchors_per_column):
+                    if best_match_batch[img_idx][i * self.anchors_per_column + j] is None:
+                        continue
                     cx = best_match_batch[img_idx][i * self.anchors_per_column + j].cx
                     cy = best_match_batch[img_idx][i * self.anchors_per_column + j].cy
                     angle = best_match_batch[img_idx][i * self.anchors_per_column + j].angle
@@ -109,3 +125,12 @@ class DeepLineLoss(nn.Module):
                     x = self.n_columns - 1
                 objectness[i, x, :, 0] = 1
         return objectness
+
+    def get_lines_grouped_by_column(self, gt_image: list[Line]):
+        out = [[] for _ in range(self.n_columns)]
+        for i in gt_image:
+            x = i.cx * self.n_columns // self.image_size[0]
+            if x == self.n_columns:
+                x = self.n_columns - 1
+            out[x].append(i)
+        return out
