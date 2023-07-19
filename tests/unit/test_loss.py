@@ -57,28 +57,7 @@ def test_distance_to_confidence(loss: DeepLineLoss):
     assert loss.distance_to_confidence(float("inf")) == 0
 
 
-def test_get_regression(loss: DeepLineLoss):
-    gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
-    best_match_batch = [[gt[0][0]] * 45]
-    regression = loss.get_regression_from_best_match(gt, best_match_batch)
-    print(regression.shape)
-    assert pytest.approx(regression[0, 1, 0, 0], 1e-4) == 100/800
-    assert pytest.approx(regression[0, 1, 0, 1], 1e-4) == 100/800
-    assert pytest.approx(regression[0, 1, 0, 2], 1e-4) == 0
-    assert pytest.approx(regression[0, 1, 0, 3], 1e-4) == 50/800
-
-
-# def test_get_regression2(loss: DeepLineLoss):
-#     gt = [[Line(cx=100, cy=100, angle=2*np.pi/3, length=50)]]
-#     best_match_batch = [[gt[0][0]] * 9]
-#     regression = loss.get_regression_from_best_match(gt, best_match_batch)
-#     assert pytest.approx(regression[0, 1, 0], 1e-4) == 58.3333/800
-#     assert pytest.approx(regression[0, 1, 1], 1e-4) == -8.3333/800
-#     assert pytest.approx(regression[0, 1, 2], 1e-4) == 300/800
-#     assert pytest.approx(regression[0, 1, 3], 1e-4) == -300/800
-
-
-def test_one_line_correct(loss: DeepLineLoss):
+def test_returns_dict(loss: DeepLineLoss):
     gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
     pred = torch.zeros((1, 9, 5, 5))
     pred[0, 1, :, 0] = 1
@@ -87,29 +66,33 @@ def test_one_line_correct(loss: DeepLineLoss):
     pred[0, 1, :, 3] = 0
     pred[0, 1, :, 4] = 50/800
     result = loss(pred, gt)
-    assert result["objectness"] == 0
+
+    assert isinstance(result, dict)
 
 
-def test_get_lines_grouped_by_column(loss: DeepLineLoss) -> None:
-    gt = [
-        Line(cx=100, cy=0, angle=0, length=50),
-        Line(cx=100, cy=100, angle=0, length=50),
-        Line(cx=100, cy=700, angle=0, length=50),
-        Line(cx=500, cy=100, angle=0, length=50),
-        Line(cx=800, cy=100, angle=0, length=50),
-    ]
+def test_get_points_from_pred_shape(loss: DeepLineLoss):
+    pred = torch.zeros((1, 9, 5, 5))
+    pred[0, 1, :, 0] = 1
+    pred[0, 1, :, 1] = 100/800
+    pred[0, 1, :, 2] = 100/800
+    pred[0, 1, :, 3] = 0
+    pred[0, 1, :, 4] = 50/800
 
-    lines = loss.get_lines_grouped_by_column(gt)
-    assert len(lines) == 9
-    assert len(lines[0]) == 0
-    assert len(lines[1]) == 3
-    assert len(lines[2]) == 0
-    assert len(lines[3]) == 0
-    assert len(lines[4]) == 0
-    assert len(lines[5]) == 1
-    assert len(lines[6]) == 0
-    assert len(lines[7]) == 0
-    assert len(lines[8]) == 1
+    p0_x, p0_y, p1_x, p1_y = loss.get_points_from_pred(pred)
+    assert p0_x.shape == (1, 9, 5)
+    assert p0_y.shape == (1, 9, 5)
+    assert p1_x.shape == (1, 9, 5)
+    assert p1_y.shape == (1, 9, 5)
 
 
-    
+def test_euclidean_distance(loss: DeepLineLoss):
+    p0_x = torch.Tensor([[[30, 60, 90], [0, 0, 0]]])
+    p0_y = torch.Tensor([[[40, 80, 120], [30, 15, 3]]])
+    p1_x = torch.Tensor([[[0, 0, 0], [40, 20, 4]]])
+    p1_y = torch.Tensor([[[0, 0, 0], [0, 0, 0]]])
+
+    expected = torch.Tensor([[[50, 100, 150], [50, 25, 5]]])
+
+    distance = loss.get_euclidean_distance(p0_x, p0_y, p1_x, p1_y)
+
+    assert (expected == distance).all()

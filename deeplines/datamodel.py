@@ -12,18 +12,18 @@ class RandomDataModel(pl.LightningDataModule):
         self.train_dataset = RandomLines(
             image_size=(width, height),
             min_lines=1,
-            max_lines=5,
+            max_lines=1,
         )
         self.val_dataset = RandomLines(
             image_size=(width, height),
             min_lines=1,
-            max_lines=5,
+            max_lines=1,
         )
 
         self.test_dataset = RandomLines(
             image_size=(width, height),
             min_lines=1,
-            max_lines=5,
+            max_lines=1,
         )
 
     def train_dataloader(self) -> DataLoader:
