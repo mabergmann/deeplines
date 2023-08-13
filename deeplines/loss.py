@@ -70,15 +70,25 @@ class DeepLineLoss(nn.Module):
                     best_p1_x[img, column, line] = match_p1[0]
                     best_p1_y[img, column, line] = match_p1[1]
 
-        hausdorff_distance = torch.max(
+        hausdorff_distance, _ = torch.max(
+            torch.stack((
                 torch.min(
                     self.get_euclidean_distance(p0_x, p0_y, best_p0_x, best_p0_y),
                     self.get_euclidean_distance(p0_x, p0_y, best_p1_x, best_p1_y),
-                ),
+                    ),
                 torch.min(
                     self.get_euclidean_distance(p1_x, p1_y, best_p0_x, best_p0_y),
                     self.get_euclidean_distance(p1_x, p1_y, best_p1_x, best_p1_y),
-                ),
+                    ),
+                torch.min(
+                    self.get_euclidean_distance(p0_x, p0_y, best_p0_x, best_p0_y),
+                    self.get_euclidean_distance(p1_x, p1_y, best_p0_x, best_p0_y),
+                    ),
+                torch.min(
+                    self.get_euclidean_distance(p0_x, p0_y, best_p1_x, best_p1_y),
+                    self.get_euclidean_distance(p1_x, p1_y, best_p1_x, best_p1_y),
+                    ),
+                ), dim=0), dim=0
             )
 
         objectness = self.get_objectness_from_gt(gt, distances_batch)
@@ -86,9 +96,11 @@ class DeepLineLoss(nn.Module):
         objectness = objectness.to(pred.device)
         objects_mask = objects_mask.to(pred.device)
 
-        loss_objectness = 0.5 * self.bce(objects_mask * pred[:, :, :, 0:1], objects_mask * objectness)
-        loss_no_objectness = 0.2 * self.mse((1 - objects_mask) * pred[:, :, :, 0:1], (1 - objects_mask) * objectness)
-        loss_distance = 0.3 * torch.mean(objects_mask.squeeze(-1) * hausdorff_distance)
+        loss_objectness = 0.2 * self.mse(objects_mask * pred[:, :, :, 0:1], objects_mask * objectness)
+        loss_no_objectness = 0.1 * self.mse((1 - objects_mask) * pred[:, :, :, 0:1], (1 - objects_mask) * objectness)
+        # loss_objectness = 0.7 * self.bce(pred[:, :, :, 0:1], objects_mask)
+        # loss_no_objectness = 0.15 * self.mse((1 - objects_mask) * pred[:, :, :, 0:1], (1 - objects_mask) * objectness)
+        loss_distance = 0.7 * torch.mean(objects_mask.squeeze(-1) * hausdorff_distance)
 
         loss = {
             'distance': loss_distance,
@@ -110,7 +122,7 @@ class DeepLineLoss(nn.Module):
         return objectness
 
     def distance_to_confidence(self, distance: float) -> float:
-        return 1 - (distance / 20) if distance < 20 else 0
+        return 1 - (distance / 40) if distance < 40 else 0
 
     def get_points_from_pred(self, pred: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         cx = pred[:, :, :, 1] * self.image_size[0]

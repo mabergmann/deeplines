@@ -48,6 +48,14 @@ def get_distance_between_lines(lines1: list[Line], lines2: list[Line]) -> np.arr
                     euclidian_distance(l1p1[0], l1p1[1], l2p0[0], l2p0[1]),
                     euclidian_distance(l1p1[0], l1p1[1], l2p1[0], l2p1[1]),
                 ),
+                min(
+                    euclidian_distance(l1p0[0], l1p0[1], l2p0[0], l2p0[1]),
+                    euclidian_distance(l1p1[0], l1p1[1], l2p0[0], l2p0[1]),
+                ),
+                min(
+                    euclidian_distance(l1p0[0], l1p0[1], l2p1[0], l2p1[1]),
+                    euclidian_distance(l1p1[0], l1p1[1], l2p1[0], l2p1[1]),
+                ),
             )
             distances[i, j] = distance
     return distances
