@@ -113,16 +113,21 @@ def get_classifications_from_output(output: torch.Tensor) -> np.array:
     return batch_classifications
 
 
-def draw_result(batch_images: torch.Tensor, batch_lines: list[list[Line]], batch_classifications: np.array) -> list[np.array]:
+def out_to_images(batch_images: torch.Tensor) -> list[np.array]:
     output = []
-    for img, lines, classifications in zip(batch_images, batch_lines, batch_classifications):
+    for img in batch_images:
         img_np = img.cpu().numpy().transpose((1, 2, 0)).copy()
+        output.append(img_np)
 
+    return output
+
+
+def draw_result(batch_images: list[np.array], batch_lines: list[list[Line]], color: tuple[int, int, int]) -> list[np.array]:
+    output = []
+    for img_np, lines in zip(batch_images, batch_lines):
         # Draw lines
         for conf in lines:
-            img_np = draw_line(img_np, conf, (0, 0, 255), 2, confidence=False)
-
-        img_np = cv2.resize(img_np, None, fx=5, fy=5)
+            img_np = draw_line(img_np, conf, color, 2, confidence=False)
 
         output.append(img_np)
 

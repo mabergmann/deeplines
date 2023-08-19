@@ -93,15 +93,14 @@ class Engine(pl.LightningModule):
             self.image_size[1],
         )
         lines = utils.nms(lines)
-        classifications = utils.get_classifications_from_output(
-            pred,
-        )
         self.test_metric_accumulator.update(lines, y)
         self.log('test_loss', total_loss)
         for k in loss.keys():
             self.log(f'test_{k}_loss', loss[k])
 
-        images = utils.draw_result(x, lines, classifications)
+        images = utils.out_to_images(x)
+        images = utils.draw_result(images, y, (255, 255, 255))
+        images = utils.draw_result(images, lines, (0, 0, 255))
         for n, i in enumerate(images):
             cv2.imwrite(f'output/{batch_idx}_{n}.png', i)
 

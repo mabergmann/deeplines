@@ -147,7 +147,7 @@ class DeepLineLoss(nn.Module):
 
         for i in range(len(gt)):
             for j in range(len(gt[i])):
-                x = gt[i][j].cx * self.n_columns // self.image_size[1]
+                x = int(gt[i][j].cx * self.n_columns // self.image_size[1])
                 if x == self.n_columns:
                     x = self.n_columns - 1
                 objectness[i, x, :, 0] = 1
@@ -156,7 +156,7 @@ class DeepLineLoss(nn.Module):
     def get_lines_grouped_by_column(self, gt_image: list[Line]):
         out = [[] for _ in range(self.n_columns)]
         for i in gt_image:
-            x = i.cx * self.n_columns // self.image_size[0]
+            x = int(i.cx * self.n_columns // self.image_size[0])
             if x == self.n_columns:
                 x = self.n_columns - 1
             out[x].append(i)

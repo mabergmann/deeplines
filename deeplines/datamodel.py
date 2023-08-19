@@ -1,7 +1,7 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 
-from .datasets.randomlines import RandomLines
+from .datasets.nkl import NKL
 
 
 class RandomDataModel(pl.LightningDataModule):
@@ -9,21 +9,21 @@ class RandomDataModel(pl.LightningDataModule):
         super().__init__()
         self.batch_size = batch_size
 
-        self.train_dataset = RandomLines(
+        self.train_dataset = NKL(
             image_size=(width, height),
-            min_lines=1,
-            max_lines=5,
+            split_file="data/train.txt",
+            images_folder="data"
         )
-        self.val_dataset = RandomLines(
+        self.val_dataset = NKL(
             image_size=(width, height),
-            min_lines=1,
-            max_lines=5,
+            split_file="data/val.txt",
+            images_folder="data"
         )
 
-        self.test_dataset = RandomLines(
+        self.test_dataset = NKL(
             image_size=(width, height),
-            min_lines=1,
-            max_lines=5,
+            split_file="data/val.txt",
+            images_folder="data"
         )
 
     def train_dataloader(self) -> DataLoader:
