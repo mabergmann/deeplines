@@ -7,13 +7,27 @@ from .line import Line
 
 
 class DeepLineLoss(nn.Module):
-    def __init__(self, image_size: tuple[int, int], n_columns: int, anchors_per_column: int) -> None:
+    def __init__(
+            self,
+            image_size: tuple[int, int],
+            n_columns: int,
+            anchors_per_column: int,
+            objectness_weight: float,
+            no_objectness_weight: float,
+            regression_weight: float,
+    ) -> None:
         super().__init__()
+        print(objectness_weight, no_objectness_weight, regression_weight)
+        assert 0.9 < objectness_weight + no_objectness_weight + regression_weight < 1.1
+
         self.image_size = image_size
         self.n_columns = n_columns
         self.anchors_per_column = anchors_per_column
         self.bce = torch.nn.BCELoss(reduction='mean')
         self.mse = torch.nn.MSELoss(reduction='mean')
+        self.objectness_weight = objectness_weight
+        self.no_objectness_weight = no_objectness_weight
+        self.regression_weight = regression_weight
 
     def forward(self, pred: torch.Tensor, gt: list[list[Line]]) -> dict[str, torch.Tensor]:
         lines_batch = utils.get_lines_from_output(pred, self.image_size[0], self.image_size[1], threshold=0)
@@ -75,32 +89,32 @@ class DeepLineLoss(nn.Module):
                 torch.min(
                     self.get_euclidean_distance(p0_x, p0_y, best_p0_x, best_p0_y),
                     self.get_euclidean_distance(p0_x, p0_y, best_p1_x, best_p1_y),
-                    ),
+                ),
                 torch.min(
                     self.get_euclidean_distance(p1_x, p1_y, best_p0_x, best_p0_y),
                     self.get_euclidean_distance(p1_x, p1_y, best_p1_x, best_p1_y),
-                    ),
+                ),
                 torch.min(
                     self.get_euclidean_distance(p0_x, p0_y, best_p0_x, best_p0_y),
                     self.get_euclidean_distance(p1_x, p1_y, best_p0_x, best_p0_y),
-                    ),
+                ),
                 torch.min(
                     self.get_euclidean_distance(p0_x, p0_y, best_p1_x, best_p1_y),
                     self.get_euclidean_distance(p1_x, p1_y, best_p1_x, best_p1_y),
-                    ),
-                ), dim=0), dim=0
-            )
+                ),
+            ), dim=0), dim=0
+        )
 
         objectness = self.get_objectness_from_gt(gt, distances_batch)
         objects_mask = self.get_objectness_mask(gt)
         objectness = objectness.to(pred.device)
         objects_mask = objects_mask.to(pred.device)
 
-        loss_objectness = 0.2 * self.mse(objects_mask * pred[:, :, :, 0:1], objects_mask * objectness)
-        loss_no_objectness = 0.1 * self.mse((1 - objects_mask) * pred[:, :, :, 0:1], (1 - objects_mask) * objectness)
-        # loss_objectness = 0.7 * self.bce(pred[:, :, :, 0:1], objects_mask)
-        # loss_no_objectness = 0.15 * self.mse((1 - objects_mask) * pred[:, :, :, 0:1], (1 - objects_mask) * objectness)
-        loss_distance = 0.7 * torch.mean(objects_mask.squeeze(-1) * hausdorff_distance)
+        loss_objectness = self.objectness_weight * self.mse(objects_mask * pred[:, :, :, 0:1],
+                                                            objects_mask * objectness)
+        loss_no_objectness = self.no_objectness_weight * self.mse((1 - objects_mask) * pred[:, :, :, 0:1],
+                                                                  (1 - objects_mask) * objectness)
+        loss_distance = self.regression_weight * torch.mean(objects_mask.squeeze(-1) * hausdorff_distance)
 
         loss = {
             'distance': loss_distance,
@@ -139,7 +153,8 @@ class DeepLineLoss(nn.Module):
         return p0_x, p0_y, p1_x, p1_y
 
     @staticmethod
-    def get_euclidean_distance(p0_x: torch.Tensor, p0_y: torch.Tensor, p1_x: torch.Tensor, p1_y: torch.Tensor) -> torch.Tensor:
+    def get_euclidean_distance(p0_x: torch.Tensor, p0_y: torch.Tensor, p1_x: torch.Tensor,
+                               p1_y: torch.Tensor) -> torch.Tensor:
         return torch.sqrt((p0_x - p1_x) ** 2 + (p0_y - p1_y) ** 2)
 
     def get_objectness_mask(self, gt: list[list[Line]]) -> torch.Tensor:

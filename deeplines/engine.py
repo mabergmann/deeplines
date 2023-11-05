@@ -20,7 +20,14 @@ class Engine(pl.LightningModule):
         self.args = args
 
         self.model = DeepLines(self.n_columns, self.anchors_per_column, args.backbone)
-        self.loss = DeepLineLoss(self.image_size, self.n_columns, self.anchors_per_column)
+        self.loss = DeepLineLoss(
+            self.image_size,
+            self.n_columns,
+            self.anchors_per_column,
+            self.args.objectness_weight,
+            self.args.no_objectness_weight,
+            self.args.regression_weight,
+        )
 
         self.train_metric_accumulator = MetricAccumulator()
         self.val_metric_accumulator = MetricAccumulator()

@@ -47,6 +47,21 @@ def parse_args() -> argparse.Namespace:
         help='Number of anchors in each column outputted by the model',
     )
     parser.add_argument(
+        '--regression_weight',
+        type=float,
+        help='Weight for the regression component of the loss function',
+    )
+    parser.add_argument(
+        '--objectness_weight',
+        type=float,
+        help='Weight for the objectness component of the loss function',
+    )
+    parser.add_argument(
+        '--no_objectness_weight',
+        type=float,
+        help='Weight for the no_objectness component of the loss function',
+    )
+    parser.add_argument(
         '--backbone',
         type=str,
         help='Backbone that should be used',

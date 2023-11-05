@@ -14,6 +14,9 @@ entry_points:
             backbone: {type: str, default: resnet50}
             batch_size: {type: int, default: 32}
             anchors_per_column: {type: int, default: 5}
+            objectness_weight: {type: float, default: 0.2}
+            no_objectness_weight: {type: float, default: 0.2}
+            regression_weight: {type: float, default: 0.2}
         command: "python train.py \
                       --lr {lr} \
                       --batch_size {batch_size} \
@@ -23,6 +26,9 @@ entry_points:
                       --dataset {dataset} \
                       --n_columns {n_columns} \
                       --anchors_per_column {anchors_per_column} \
+                      --objectness_weight {objectness_weight} \
+                      --no_objectness_weight {no_objectness_weight} \
+                      --regression_weight {regression_weight} \
                       --backbone {backbone}"
     test:
         parameters:
@@ -53,6 +59,9 @@ entry_points:
             backbone: {type: str, default: resnet50}
             batch_size: {type: int, default: 32}
             anchors_per_column: {type: int, default: 5}
+            objectness_weight: {type: float, default: 0.2}
+            no_objectness_weight: {type: float, default: 0.2}
+            regression_weight: {type: float, default: 0.2}
         command: "python main.py \
                       --lr {lr} \
                       --batch_size {batch_size} \
@@ -62,5 +71,8 @@ entry_points:
                       --dataset {dataset} \
                       --n_columns {n_columns} \
                       --anchors_per_column {anchors_per_column} \
+                      --objectness_weight {objectness_weight} \
+                      --no_objectness_weight {no_objectness_weight} \
+                      --regression_weight {regression_weight} \
                       --backbone {backbone}"
 

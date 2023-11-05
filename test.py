@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def test(args: argparse.Namespace, run_id: str, experiment_id: str = '737942083243500375') -> None:
+def test(args: argparse.Namespace, run_id: str, experiment_id: str = '814880674268292722') -> None:
     pl.seed_everything(42, workers=True)
 
     data = RandomDataModel(args.batch_size, args.width, args.height)
@@ -84,4 +84,4 @@ def test(args: argparse.Namespace, run_id: str, experiment_id: str = '7379420832
 
 if __name__ == '__main__':
     args = parse_args()
-    test(args, 'beaca8218e4e4509aa9eb3ffb9783d59')
+    test(args, 'f350cf5fec0845059eaf2532b0052c00')
