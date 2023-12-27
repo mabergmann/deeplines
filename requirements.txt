@@ -1,3 +1,4 @@
+einops==0.3.0
 flake8
 lightning[extra]
 mlflow
@@ -9,3 +10,4 @@ pytorch-lightning
 scipy
 torch
 torchvision
+timm>=0.4.7

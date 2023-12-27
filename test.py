@@ -44,7 +44,7 @@ def parse_args() -> argparse.Namespace:
         '--backbone',
         type=str,
         help='Backbone that should be used',
-        choices=['resnet50', 'vgg16'],
+        choices=['resnet50', 'vgg16', 'pit_b', 'pit_ti'],
     )
     parser.add_argument(
         '--batch_size',
@@ -54,10 +54,10 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def test(args: argparse.Namespace, run_id: str, experiment_id: str = '814880674268292722') -> None:
+def test(args: argparse.Namespace, run_id: str, experiment_id: str = '613699856656297033') -> None:
     pl.seed_everything(42, workers=True)
 
-    data = RandomDataModel(args.batch_size, args.width, args.height)
+    data = RandomDataModel(args.batch_size, args.width, args.height, args.dataset)
 
     engine = Engine(args)
 

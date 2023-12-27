@@ -2,11 +2,11 @@ import numpy as np
 import torch
 from torch import nn
 
-from . import utils
-from .line import Line
+from .. import utils
+from ..line import Line
 
 
-class DeepLineLoss(nn.Module):
+class HaussdorffLoss(nn.Module):
     def __init__(
             self,
             image_size: tuple[int, int],

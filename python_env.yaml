@@ -6,6 +6,7 @@ build_dependencies:
   - setuptools
 # Dependencies required to run the project.
 dependencies:
+  - einops==0.3.0
   - lightning[extra]
   - mlflow==2.4.1
   - numpy==1.23.5
@@ -15,3 +16,4 @@ dependencies:
   - scipy==1.10.0
   - torch
   - torchvision
+  - timm==0.4.7

@@ -34,7 +34,7 @@ def parse_args() -> argparse.Namespace:
         '-d',
         type=str,
         help='Name of the dataset',
-        choices=['random'],
+        choices=['random', 'NKL'],
     )
     parser.add_argument(
         '--n_columns',
@@ -65,12 +65,18 @@ def parse_args() -> argparse.Namespace:
         '--backbone',
         type=str,
         help='Backbone that should be used',
-        choices=['resnet50', 'vgg16'],
+        choices=['resnet50', 'vgg16', 'pit_b', 'pit_ti'],
     )
     parser.add_argument(
         '--batch_size',
         type=int,
         help='Batch size',
+    )
+    parser.add_argument(
+        '--loss',
+        type=str,
+        help='Loss that should be used',
+        choices=['hausdorff', 'MSE'],
     )
     return parser.parse_args()
 

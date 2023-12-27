@@ -1,4 +1,5 @@
 import argparse
+from re import M
 
 import cv2
 import pytorch_lightning as pl
@@ -6,7 +7,8 @@ import torch
 
 from . import utils
 from .line import Line
-from .loss import DeepLineLoss
+from .losses.hausdorff_loss import HaussdorffLoss
+from .losses.mse_loss import MSELoss
 from .metrics import MetricAccumulator
 from .model import DeepLines
 
@@ -20,25 +22,55 @@ class Engine(pl.LightningModule):
         self.args = args
 
         self.model = DeepLines(self.n_columns, self.anchors_per_column, args.backbone)
-        self.loss = DeepLineLoss(
-            self.image_size,
-            self.n_columns,
-            self.anchors_per_column,
-            self.args.objectness_weight,
-            self.args.no_objectness_weight,
-            self.args.regression_weight,
-        )
+
+
+        self.loss = self.get_loss(args)
 
         self.train_metric_accumulator = MetricAccumulator()
         self.val_metric_accumulator = MetricAccumulator()
         self.test_metric_accumulator = MetricAccumulator()
 
+    def get_loss(self, args: argparse.Namespace) -> torch.nn.Module:
+        if args.loss == "hausdorff":
+            loss = HaussdorffLoss(
+                self.image_size,
+                self.n_columns,
+                self.anchors_per_column,
+                self.args.objectness_weight,
+                self.args.no_objectness_weight,
+                self.args.regression_weight,
+            )
+        elif args.loss == "MSE":
+            loss = MSELoss(
+                self.image_size,
+                self.n_columns,
+                self.anchors_per_column,
+            )
+
+        return loss
+
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
-    def configure_optimizers(self) -> torch.optim.Adam:
-        optimizer = torch.optim.Adam(
-            self.model.parameters(),
+    def configure_optimizers(self) -> torch.optim.AdamW:
+        decay = dict()
+        no_decay = dict()
+        for name, m in self.model.named_parameters():
+            if 'weight' in name:
+                decay[name] = m
+            else:
+                no_decay[name] = m
+
+        print("Decay params:")
+        print(decay.keys())
+        print("\nNo decay params:")
+        print(no_decay.keys())
+        optimizer = torch.optim.AdamW(
+            [
+                {"params": decay.values(), "weight_decay": self.args.weight_decay},
+                {"params": no_decay.values(), "weight_decay": 0}
+            ],
             lr=self.args.lr,
         )
         return optimizer
@@ -58,6 +90,7 @@ class Engine(pl.LightningModule):
         self.log('train_loss', total_loss)
         for k in loss.keys():
             self.log(f'train_{k}_loss', loss[k])
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
         return total_loss
 
     def on_train_epoch_end(self) -> None:

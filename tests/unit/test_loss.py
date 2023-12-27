@@ -3,15 +3,15 @@ import pytest
 import torch
 
 from deeplines.line import Line
-from deeplines.loss import DeepLineLoss
+from deeplines.losses.hausdorff_loss import HaussdorffLoss
 
 
 @pytest.fixture
 def loss():
-    return DeepLineLoss(image_size=(800, 800), n_columns=9, anchors_per_column=5)
+    return HaussdorffLoss(image_size=(800, 800), n_columns=9, anchors_per_column=5)
 
 
-def test_get_objectness(loss: DeepLineLoss):
+def test_get_objectness(loss: HaussdorffLoss):
     gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
 
     distances = np.zeros((1, 45))
@@ -27,7 +27,7 @@ def test_get_objectness(loss: DeepLineLoss):
                 assert objectness[0, i, j] == 0
 
 
-def test_get_objectness_multiple_lines(loss: DeepLineLoss):
+def test_get_objectness_multiple_lines(loss: HaussdorffLoss):
     gt = [
         [
             Line(cx=100, cy=100, angle=0, length=50),
@@ -51,13 +51,13 @@ def test_get_objectness_multiple_lines(loss: DeepLineLoss):
                 assert objectness[0, i, j] == 0
 
 
-def test_distance_to_confidence(loss: DeepLineLoss):
+def test_distance_to_confidence(loss: HaussdorffLoss):
     assert loss.distance_to_confidence(10) == 0.5
     assert loss.distance_to_confidence(0) == 1
     assert loss.distance_to_confidence(float("inf")) == 0
 
 
-def test_returns_dict(loss: DeepLineLoss):
+def test_returns_dict(loss: HaussdorffLoss):
     gt = [[Line(cx=100, cy=100, angle=0, length=50)]]
     pred = torch.zeros((1, 9, 5, 5))
     pred[0, 1, :, 0] = 1
@@ -70,7 +70,7 @@ def test_returns_dict(loss: DeepLineLoss):
     assert isinstance(result, dict)
 
 
-def test_get_points_from_pred_shape(loss: DeepLineLoss):
+def test_get_points_from_pred_shape(loss: HaussdorffLoss):
     pred = torch.zeros((1, 9, 5, 5))
     pred[0, 1, :, 0] = 1
     pred[0, 1, :, 1] = 100/800
@@ -85,7 +85,7 @@ def test_get_points_from_pred_shape(loss: DeepLineLoss):
     assert p1_y.shape == (1, 9, 5)
 
 
-def test_euclidean_distance(loss: DeepLineLoss):
+def test_euclidean_distance(loss: HaussdorffLoss):
     p0_x = torch.Tensor([[[30, 60, 90], [0, 0, 0]]])
     p0_y = torch.Tensor([[[40, 80, 120], [30, 15, 3]]])
     p1_x = torch.Tensor([[[0, 0, 0], [40, 20, 4]]])

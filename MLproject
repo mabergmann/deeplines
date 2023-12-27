@@ -17,6 +17,7 @@ entry_points:
             objectness_weight: {type: float, default: 0.2}
             no_objectness_weight: {type: float, default: 0.2}
             regression_weight: {type: float, default: 0.2}
+            loss: {type: str, default: hausdorff}
         command: "python train.py \
                       --lr {lr} \
                       --batch_size {batch_size} \
@@ -29,7 +30,8 @@ entry_points:
                       --objectness_weight {objectness_weight} \
                       --no_objectness_weight {no_objectness_weight} \
                       --regression_weight {regression_weight} \
-                      --backbone {backbone}"
+                      --backbone {backbone} \
+                      --loss {loss}"
     test:
         parameters:
             width: {type: int, default: 224}
@@ -62,6 +64,7 @@ entry_points:
             objectness_weight: {type: float, default: 0.2}
             no_objectness_weight: {type: float, default: 0.2}
             regression_weight: {type: float, default: 0.2}
+            loss: {type: str, default: hausdorff}
         command: "python main.py \
                       --lr {lr} \
                       --batch_size {batch_size} \
@@ -74,5 +77,6 @@ entry_points:
                       --objectness_weight {objectness_weight} \
                       --no_objectness_weight {no_objectness_weight} \
                       --regression_weight {regression_weight} \
-                      --backbone {backbone}"
+                      --backbone {backbone} \
+                      --loss {loss}"
 

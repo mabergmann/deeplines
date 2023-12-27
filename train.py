@@ -68,12 +68,18 @@ def parse_args() -> argparse.Namespace:
         '--backbone',
         type=str,
         help='Backbone that should be used',
-        choices=['resnet50', 'vgg16'],
+        choices=['resnet50', 'vgg16', 'pit_b', 'pit_ti'],
     )
     parser.add_argument(
         '--batch_size',
         type=int,
         help='Batch size',
+    )
+    parser.add_argument(
+        '--loss',
+        type=str,
+        help='Loss that should be used',
+        choices=['hausdorff', 'MSE'],
     )
     return parser.parse_args()
 
@@ -81,7 +87,7 @@ def parse_args() -> argparse.Namespace:
 def train(args: argparse.Namespace) -> str:
     pl.seed_everything(42, workers=True)
 
-    data = RandomDataModel(args.batch_size, args.width, args.height)
+    data = RandomDataModel(args.batch_size, args.width, args.height, args.dataset)
 
     engine = Engine(args)
 
@@ -107,7 +113,7 @@ def train(args: argparse.Namespace) -> str:
         callbacks=[checkpoint_callback],
         logger=logger,
         num_sanity_val_steps=0,
-        max_epochs=100,
+        max_epochs=500,
         log_every_n_steps=32,
     )
     trainer.fit(engine, datamodule=data)
